@@ -1,0 +1,7 @@
+.simplecov
+ChangeLog
+README.md
+Rakefile
+lib/observability.rb
+spec/observability_spec.rb
+spec/spec_helper.rb
