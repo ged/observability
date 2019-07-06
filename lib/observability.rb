@@ -1,7 +1,7 @@
 # -*- ruby -*-
-#encoding: utf-8
+# frozen_string_literal: true
 
-# Toplevel namespace
+# A mixin that adds effortless Observability to your systems.
 module Observability
 
 	# Package version
@@ -10,6 +10,8 @@ module Observability
 	# Version control revision
 	REVISION = %q$Revision$
 
+
+	
 
 end # module Observability
 
