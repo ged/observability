@@ -1,3 +1,5 @@
 hoe-deveiate
 concurrent-ruby
+concurrent-ruby-ext
+concurrent-ruby-edge
 msgpack

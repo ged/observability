@@ -17,16 +17,22 @@ Hoe.plugins.delete :rubyforge
 Hoe.plugins.delete :gemcutter # Remove for public gems
 
 hoespec = Hoe.spec 'observability' do |spec|
-
 	spec.readme_file = 'README.md'
 	spec.history_file = 'History.md'
 
 	spec.extra_rdoc_files = FileList[ '*.rdoc', '*.md' ]
 	spec.license 'BSD-3-Clause'
+	spec.urls = {
+		home:   'http://bitbucket.org/ged/observability',
+		code:   'http://bitbucket.org/ged/observability',
+		docs:   'http://deveiate.org/code/observability',
+		github: 'http://github.com/ged/observability',
+	}
 
 	spec.developer 'Michael Granger', 'ged@FaerieMUD.org'
 
 	spec.dependency 'loggability', '~> 0.11'
+	spec.dependency 'msgpack', '~> 1.3'
 
 	spec.dependency 'hoe-deveiate',            '~> 0.3', :developer
 	spec.dependency 'simplecov',               '~> 0.7', :developer

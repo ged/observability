@@ -1,15 +1,22 @@
 # -*- ruby -*-
 # frozen_string_literal: true
 
+require 'loggability'
+
 
 # A mixin that adds effortless Observability to your systems.
 module Observability
+	extend Loggability
+
 
 	# Package version
 	VERSION = '0.0.1'
 
 	# Version control revision
 	REVISION = %q$Revision$
+
+
+	log_as :observability
 
 
 	begin
@@ -43,14 +50,19 @@ module Observability
 	autoload :Observer, 'observability/observer'
 
 
+	@observer_hooks = {}
+	singleton_class.attr_reader :observer_hooks
+
 
 	### Extension callback
 	def self::extended( mod )
 		super
 
-		observer = ObserverHooks.dup
-		mod.instance_variable_set( :@observer, observer )
-		mod.prepend( observer )
+		Observability.observer_hooks[ mod ] ||= begin
+			observer_hooks = ObserverHooks.dup
+			mod.prepend( observer_hooks )
+			observer_hooks
+		end
 	end
 
 
@@ -60,15 +72,36 @@ module Observability
 	end
 
 
-	### (Undocumented)
-	def observe( method_name, *args )
+	### Make the method body for an observation method for the method with the given
+	### +name+.
+	def self::make_observer_method( name, description, **options )
+		return lambda do |*method_args, **method_options, &block|
+			Observability.observer.add( name, description, options )
+			super( *method_args, **method_options, &block )
+		end
+	end
+
+
+	def observed_system( description )
 		
-		Observability.observer
+	end
+
+
+	### Wrap a method call in an observer call.
+	def observe( method_name, description=nil, **options )
+		hooks = Observability.observer_hooks[ self ] or
+			raise "No observer hooks installed for %p?!" % [ self ]
+		method_body = Observability.make_observer_method( method_name, description, **options )
+
+		hooks.define_method( method_name, &method_body )
 	end
 
 
 	# A mixin that allows events to be created for any current observers at runtime.
 	module ObserverHooks
+
+		
+
 
 		### Return a proxy for all currently-registered observers.
 		def observer
