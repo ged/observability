@@ -60,6 +60,7 @@ module Observability
 
 		Observability.observer_hooks[ mod ] ||= begin
 			observer_hooks = ObserverHooks.dup
+			observer_hooks.observed_system = mod.name || '<anonymous:%#x>' % [mod.object_id * 2]
 			mod.prepend( observer_hooks )
 			observer_hooks
 		end
@@ -82,8 +83,9 @@ module Observability
 	end
 
 
+	### Set the +description+ of the observed system for the receiver.
 	def observed_system( description )
-		
+		Observability.observer_hooks[ self ]&.description = description
 	end
 
 
@@ -100,7 +102,19 @@ module Observability
 	# A mixin that allows events to be created for any current observers at runtime.
 	module ObserverHooks
 
-		
+		singleton_class.attr_accessor :observed_system
+
+
+		### Set up the event stack for each object.
+		def initialize( * )
+			super if defined?( super )
+			@observability_event_stack = []
+		end
+
+
+		##
+		# The stack of events which are being built, outermost-first
+		attr_reader :observability_event_stack
 
 
 		### Return a proxy for all currently-registered observers.
@@ -113,6 +127,8 @@ module Observability
 		### context, then yield to the method's block. Finish the event when the yield
 		### returns, handling exceptions that are being raised automatically.
 		def observe( *args )
+			event = Observability::Event.new
+			self.observability_event_stack.push( event )
 			yield
 		rescue Exception => err
 			self.observer.add( err )
