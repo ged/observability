@@ -1,12 +1,15 @@
 # -*- ruby -*-
 # frozen_string_literal: true
 
+require 'concurrent'
+require 'configurability'
 require 'loggability'
 
 
 # A mixin that adds effortless Observability to your systems.
 module Observability
-	extend Loggability
+	extend Loggability,
+	       Configurability
 
 
 	# Package version
@@ -16,49 +19,36 @@ module Observability
 	REVISION = %q$Revision$
 
 
+	# Loggability -- Create a logger
 	log_as :observability
 
 
-	begin
-		require 'configurability'
-	rescue LoadError
-		# Configurability is optional
+	# Configuration settings
+	configurability( :observability ) do
+
+		##
+		# The sender type to use
+		setting :sender_type, default: :null
+
 	end
 
 
-	if defined?( Configurability )
-		extend Configurability
-		configurability( :observability ) do
-
-			##
-			# The host to send events to
-			setting :host, default: 'localhost'
-
-
-			##
-			# The port to send events to
-			setting :port, default: 15663
-
-		end
-	else
-		class << self
-			attr_accessor :host, :port
-		end
-	end
-
-
+	autoload :Event, 'observability/event'
 	autoload :Observer, 'observability/observer'
+	autoload :ObserverHooks, 'observability/observer_hooks'
 
 
-	@observer_hooks = {}
+	@observer_hooks = Concurrent::Map.new
 	singleton_class.attr_reader :observer_hooks
+
+	@observer = Concurrent::Ivar.new
 
 
 	### Extension callback
 	def self::extended( mod )
 		super
 
-		Observability.observer_hooks[ mod ] ||= begin
+		Observability.observer_hooks.compute_if_absent( mod ) do
 			observer_hooks = ObserverHooks.dup
 			observer_hooks.observed_system = mod.name || '<anonymous:%#x>' % [mod.object_id * 2]
 			mod.prepend( observer_hooks )
@@ -69,7 +59,14 @@ module Observability
 
 	### Return the current Observer, creating it if necessary.
 	def self::observer
-		return @observer ||= Observability::Observer.new
+		unless @observer.complete?
+			@observer.try_set do
+				sender = Observer::Sender.create( Observability.sender_type )
+				Observable::Observer.new( sender )
+			end
+		end
+
+		return @observer.value
 	end
 
 
@@ -77,17 +74,16 @@ module Observability
 	### +name+.
 	def self::make_observer_method( name, description, **options )
 		return lambda do |*method_args, **method_options, &block|
-			Observability.observer.add( name, description, options )
-			super( *method_args, **method_options, &block )
+			self.observe( name, description, **options ) do
+				super( *method_args, **method_options, &block )
+			end
 		end
 	end
 
 
-	### Set the +description+ of the observed system for the receiver.
-	def observed_system( description )
-		Observability.observer_hooks[ self ]&.description = description
-	end
-
+	#
+	# DSL Methods
+	#
 
 	### Wrap a method call in an observer call.
 	def observe( method_name, description=nil, **options )
@@ -99,43 +95,11 @@ module Observability
 	end
 
 
-	# A mixin that allows events to be created for any current observers at runtime.
-	module ObserverHooks
-
-		singleton_class.attr_accessor :observed_system
-
-
-		### Set up the event stack for each object.
-		def initialize( * )
-			super if defined?( super )
-			@observability_event_stack = []
-		end
-
-
-		##
-		# The stack of events which are being built, outermost-first
-		attr_reader :observability_event_stack
-
-
-		### Return a proxy for all currently-registered observers.
-		def observer
-			return Observability.observer
-		end
-
-
-		### Create an event at the current point of execution, make it the innermost
-		### context, then yield to the method's block. Finish the event when the yield
-		### returns, handling exceptions that are being raised automatically.
-		def observe( *args )
-			event = Observability::Event.new
-			self.observability_event_stack.push( event )
-			yield
-		rescue Exception => err
-			self.observer.add( err )
-			raise
-		end
-
+	### Set the +description+ of the observed system for the receiver.
+	def observed_system( description )
+		Observability.observer_hooks[ self ]&.description = description
 	end
+
 
 end # module Observability
 

@@ -32,13 +32,14 @@ hoespec = Hoe.spec 'observability' do |spec|
 	spec.developer 'Michael Granger', 'ged@FaerieMUD.org'
 
 	spec.dependency 'loggability', '~> 0.11'
+	spec.dependency 'configurability', '~> 3.3'
 	spec.dependency 'msgpack', '~> 1.3'
 
-	spec.dependency 'hoe-deveiate',            '~> 0.3', :developer
-	spec.dependency 'simplecov',               '~> 0.7', :developer
+	spec.dependency 'hoe-deveiate', '~> 0.3', :developer
+	spec.dependency 'simplecov', '~> 0.7', :developer
 	spec.dependency 'rdoc-generator-fivefish', '~> 0.1', :developer
 
-	spec.require_ruby_version( '>=2.6.3' )
+	spec.require_ruby_version( '>=2.4.0' )
 	spec.hg_sign_tags = true if spec.respond_to?( :hg_sign_tags= )
 	spec.check_history_on_release = true if spec.respond_to?( :check_history_on_release= )
 
@@ -87,7 +88,7 @@ task GEMSPEC do |task|
 	spec.files.delete( '.gemtest' )
 	spec.signing_key = nil
 	spec.cert_chain = ['certs/ged.pem']
-	spec.version = "#{spec.version.bump}.pre#{Time.now.strftime("%Y%m%d%H%M%S")}"
+	spec.version = "#{spec.version.bump}.0.pre#{Time.now.strftime("%Y%m%d%H%M%S")}"
 	File.open( task.name, 'w' ) do |fh|
 		fh.write( spec.to_ruby )
 	end
