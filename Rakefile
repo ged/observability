@@ -33,6 +33,7 @@ hoespec = Hoe.spec 'observability' do |spec|
 
 	spec.dependency 'loggability', '~> 0.11'
 	spec.dependency 'configurability', '~> 3.3'
+	spec.dependency 'pluggability', '~> 0.6'
 	spec.dependency 'msgpack', '~> 1.3'
 
 	spec.dependency 'hoe-deveiate', '~> 0.3', :developer

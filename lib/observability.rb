@@ -41,7 +41,7 @@ module Observability
 	@observer_hooks = Concurrent::Map.new
 	singleton_class.attr_reader :observer_hooks
 
-	@observer = Concurrent::Ivar.new
+	@observer = Concurrent::IVar.new
 
 
 	### Extension callback
@@ -62,7 +62,9 @@ module Observability
 		unless @observer.complete?
 			@observer.try_set do
 				sender = Observer::Sender.create( Observability.sender_type )
-				Observable::Observer.new( sender )
+				obs = Observable::Observer.new( sender )
+				obs.start
+				obs
 			end
 		end
 
@@ -78,6 +80,13 @@ module Observability
 				super( *method_args, **method_options, &block )
 			end
 		end
+	end
+
+
+	### Reset Observability; this can be used to free up
+	def self::reset
+		@observer.value.stop if @observer.complete?
+		@observer = Concurrent::IVar.new
 	end
 
 
