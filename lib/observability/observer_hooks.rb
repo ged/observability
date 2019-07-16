@@ -8,26 +8,21 @@ require 'observability' unless defined?( Observability )
 module Observability::ObserverHooks
 
 
-	##
-	# The description of the system the module is mixed into
-	attr_accessor :observed_system
-
-
-	### Return a proxy for all currently-registered observers.
-	def observer
-		return Observability.observer
-	end
+	singleton_class.attr_accessor( :observed_system )
 
 
 	### Create an event at the current point of execution, make it the innermost
 	### context, then yield to the method's block. Finish the event when the yield
 	### returns, handling exceptions that are being raised automatically.
 	def observe( *args )
-		self.observer.new_event( *args )
+		hooks = Observability[ self ]
+		Observability.observer.new_event( hooks.observed_system, *args )
 		yield
 	rescue Exception => err
-		self.observer.add( err )
+		Observability.observer.add( err )
 		raise
+	ensure
+		Observability.observer.finish_event( hooks.observed_system ) if hooks
 	end
 
 end # module Observability::ObserverHooks

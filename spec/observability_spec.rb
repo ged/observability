@@ -10,9 +10,41 @@ require 'observability/observer'
 
 describe Observability do
 
+	before( :all ) do
+		@real_hook_mods = Observability.observer_hooks
+		Observability.instance_variable_set( :@observer_hooks, Concurrent::Map.new )
+	end
+
+	before( :each ) do
+		Observability.reset
+		Observability.observer_hooks.keys.each {|key| Observability.observer_hooks.delete(key) }
+	end
+
+	after( :all ) do
+		Observability.instance_variable_set( :@observer_hooks, @real_hook_mods )
+	end
+
+
 	it "can create a singleton observer" do
 		result = described_class.observer
 		expect( result ).to be_a( Observability::Observer )
+	end
+
+
+	it "doesn't race to create the singleton observer" do
+		val1 = Thread.new { described_class.observer }.value
+		val2 = Thread.new { described_class.observer }.value
+
+		expect( val1 ).to be( val2 )
+	end
+
+
+	it "tracks the hook modules of all extended modules" do
+		new_mod = Module.new
+		new_mod.extend( described_class )
+		expect( described_class.observer_hooks.keys ).to include( new_mod )
+		expect( described_class.observer_hooks[new_mod] ).to be_a( Module ).
+			and( respond_to :observed_system )
 	end
 
 
@@ -37,7 +69,7 @@ describe Observability do
 		end
 
 
-		it "can decorate its instance methods with observation events" do
+		it "can decorate instance methods with observation" do
 			observed_class.observe( :do_a_thing )
 
 			expect {

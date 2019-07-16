@@ -36,12 +36,20 @@ module Observability
 	autoload :Event, 'observability/event'
 	autoload :Observer, 'observability/observer'
 	autoload :ObserverHooks, 'observability/observer_hooks'
+	autoload :Sender, 'observability/sender'
 
 
 	@observer_hooks = Concurrent::Map.new
 	singleton_class.attr_reader :observer_hooks
 
 	@observer = Concurrent::IVar.new
+
+
+	### Get the observer hooks for the specified +mod+.
+	def self::[]( mod )
+		mod = mod.class unless mod.is_a?( Module )
+		return self.observer_hooks[ mod ]
+	end
 
 
 	### Extension callback
@@ -60,15 +68,16 @@ module Observability
 	### Return the current Observer, creating it if necessary.
 	def self::observer
 		unless @observer.complete?
+			self.log.debug "Creating the observer agent."
 			@observer.try_set do
-				sender = Observer::Sender.create( Observability.sender_type )
-				obs = Observable::Observer.new( sender )
+				sender = Observability::Sender.get_subclass( Observability.sender_type )
+				obs = Observability::Observer.new( sender )
 				obs.start
 				obs
 			end
 		end
 
-		return @observer.value
+		return @observer.value!
 	end
 
 
@@ -83,7 +92,8 @@ module Observability
 	end
 
 
-	### Reset Observability; this can be used to free up
+	### Reset all per-process Observability state. This should be called, for instance,
+	### after a fork or between tests.
 	def self::reset
 		@observer.value.stop if @observer.complete?
 		@observer = Concurrent::IVar.new

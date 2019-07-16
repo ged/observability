@@ -3,3 +3,6 @@ concurrent-ruby
 concurrent-ruby-ext
 concurrent-ruby-edge
 msgpack
+loggability
+configurability
+pluggability

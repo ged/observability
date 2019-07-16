@@ -31,6 +31,8 @@ hoespec = Hoe.spec 'observability' do |spec|
 
 	spec.developer 'Michael Granger', 'ged@FaerieMUD.org'
 
+	spec.dependency 'concurrent-ruby', '~> 1.1.5'
+	spec.dependency 'concurrent-ruby-ext', '~> 1.1.5'
 	spec.dependency 'loggability', '~> 0.11'
 	spec.dependency 'configurability', '~> 3.3'
 	spec.dependency 'pluggability', '~> 0.6'

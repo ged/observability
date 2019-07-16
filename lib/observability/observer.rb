@@ -13,8 +13,29 @@ class Observability::Observer
 
 
 	### Create a new Observer that will send events via the specified +sender+.
-	def initialize( sender )
-		@sender = sender
+	def initialize( sender_class )
+		@sender = sender_class.new
+	end
+
+
+	######
+	public
+	######
+
+	##
+	# The Observability::Sender used to deliver events
+	attr_reader :sender
+
+
+	### Start recording events and sending them.
+	def start
+		self.sender.start
+	end
+
+
+	### Stop recording and sending events.
+	def stop
+		self.sender.stop
 	end
 
 
