@@ -1,8 +1,9 @@
-hoe-deveiate
+binding_of_caller
 concurrent-ruby
-concurrent-ruby-ext
 concurrent-ruby-edge
-msgpack
-loggability
+concurrent-ruby-ext
 configurability
+hoe-deveiate
+loggability
+msgpack
 pluggability

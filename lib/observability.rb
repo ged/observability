@@ -57,7 +57,7 @@ module Observability
 		super
 
 		Observability.observer_hooks.compute_if_absent( mod ) do
-			observer_hooks = ObserverHooks.dup
+			observer_hooks = Observability::ObserverHooks.dup
 			observer_hooks.observed_system = mod.name || '<anonymous:%#x>' % [mod.object_id * 2]
 			mod.prepend( observer_hooks )
 			observer_hooks
@@ -80,17 +80,6 @@ module Observability
 	end
 
 
-	### Make the method body for an observation method for the method with the given
-	### +name+.
-	def self::make_observer_method( name, description, **options )
-		return lambda do |*method_args, **method_options, &block|
-			self.observe( name, description, **options ) do
-				super( *method_args, **method_options, &block )
-			end
-		end
-	end
-
-
 	### Reset all per-process Observability state. This should be called, for instance,
 	### after a fork or between tests.
 	def self::reset
@@ -99,15 +88,29 @@ module Observability
 	end
 
 
+	### (Undocumented)
+	def self::make_wrapped_method( name, context, options )
+		return Proc.new do |*m_args, **m_options, &block|
+			Loggability[ Observability ].debug "Wrapped method %p: %p" %
+				[ name, context ]
+			Observability.observer.event( context, **options ) do
+				super( *m_args, **m_options, &block )
+			end
+		end
+	end
+
 	#
 	# DSL Methods
 	#
 
 	### Wrap a method call in an observer call.
-	def observe( method_name, description=nil, **options )
+	def observe( method_name, *details, **options )
 		hooks = Observability.observer_hooks[ self ] or
 			raise "No observer hooks installed for %p?!" % [ self ]
-		method_body = Observability.make_observer_method( method_name, description, **options )
+
+		context = self.instance_method( method_name )
+		context = [ context, *details ]
+		method_body = Observability.make_wrapped_method( method_name, context, options )
 
 		hooks.define_method( method_name, &method_body )
 	end

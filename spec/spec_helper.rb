@@ -104,7 +104,8 @@ module Observability::SpecHelpers
 		def failure_message
 			return self.describe_prelude_error if @prelude_error
 			return "no events were emitted" if @sender.enqueued_events.empty?
-			return "no %s events were emitted" % [ @expected_type ]
+			return "no %s events were emitted; emitted events were:\n  %s" %
+				[ @expected_type, @sender.enqueued_events.map(&:type).join("\n ") ]
 		end
 		alias_method :failure_message_for_should, :failure_message
 
@@ -121,10 +122,9 @@ module Observability::SpecHelpers
 		### Return a String describing an error which happened in the spec's
 		### block before the event started.
 		def describe_prelude_error
-			return "%p before the event was emitted: %s\n  " % [
+			return "%p before the event was emitted: %s" % [
 				@prelude_error.class,
-				@prelude_error.message,
-				@prelude_error.backtrace.join( "\n  " )
+				@prelude_error.full_message( highlight: $stdout.tty?, order: :bottom )
 			]
 		end
 

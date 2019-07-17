@@ -34,6 +34,12 @@ class Observability::Event
 	attr_reader :fields
 
 
+	### Merge the specified +fields+ into the event's data.
+	### :TODO: Handle conflicts?
+	def merge( **fields )
+		self.fields.merge!( fields )
+	end
+
 
 end # class Observability::Event
 

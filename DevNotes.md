@@ -47,3 +47,26 @@ The Observability module will:
 * Tracing+events
 
  
+## Event Naming Convention
+
+Event names are dot-separated namespaces for events. You can use any convention that makes sense for your organization, but we suggest a convention like:
+
+    <namespace>.<system>.<verb>[.<detail>]+
+
+For a class named `FM::Manager::Players`, an event sent for a method called
+`connect_player` might be:
+
+    fm.manager.players.connect_player
+
+And an exception raised from that method call might generate:
+
+    fm.manager.players.connect_player.exception
+
+For the Sequel database toolkit, establishing a PostgreSQL connection might generate an event named:
+
+    sequel.adapters.postgres.connect
+
+and if the connection subsequently failed, it might be followed with:
+
+    sequel.adapters.postgres.connect.failure
+
