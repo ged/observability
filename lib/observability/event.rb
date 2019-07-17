@@ -15,9 +15,24 @@ class Observability::Event
 
 
 	### Create a new event
-	def initialize
-		
+	def initialize( type, **fields )
+		@type   = type.freeze
+		@fields = fields
 	end
+
+
+	######
+	public
+	######
+
+	##
+	# The type of the event, which should be a string of the form: 'foo.bar.baz'
+	attr_reader :type
+
+	##
+	# A Symbol-keyed Hash of values that make up the event data
+	attr_reader :fields
+
 
 
 end # class Observability::Event

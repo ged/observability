@@ -29,33 +29,6 @@ module Observability::SpecHelpers
 	end
 
 
-
-	class TestingSender < Observability::Sender
-
-		def initialize( * )
-			@enqueued_events = []
-		end
-
-		attr_reader :enqueued_events
-
-
-		def start; end
-		def stop; end
-
-
-		def enqueue( *events )
-			@enqueued_events.concat( events )
-		end
-
-
-		### (Undocumented)
-		def event_was_sent?
-			
-		end
-
-	end # class TestingSender
-
-
 	# Expectation class to match emitted events.
 	class EventEmittedExpectation
 		include RSpec::Matchers::Composable
@@ -66,8 +39,8 @@ module Observability::SpecHelpers
 
 		### Create a new expectation that an event will be emitted that matches the
 		### given +criteria+.
-		def initialize( *criteria )
-			@critera       = criteria
+		def initialize( expected_type )
+			@expected_type = expected_type
 			@prelude_error = nil
 			@sender        = nil
 		end
@@ -123,26 +96,15 @@ module Observability::SpecHelpers
 
 		### Returns +true+ if the job ran and succeeded.
 		def job_ran_normally?
-			return @sender.event_was sent? &&
-				@sender.event_result &&
-				!@sender.event_result.is_a?( ::Exception )
+			return @sender.event_was_sent?( @expected_type )
 		end
 
 
 		### Return a failure message based on the current state of the matcher.
 		def failure_message
 			return self.describe_prelude_error if @prelude_error
-			return "no events were sent" unless @sender.event_was_sent?
-
-			if @sender.event_result.is_a?( ::Exception )
-				return "event failed permanently (%p: %s)\n%s" % [
-					@sender.event_result.class,
-					@sender.event_result.message,
-					@sender.event_result.backtrace.join( "\n" )
-				]
-			end
-
-			return "event was sent, but returned %p (retry)" % [ @sender.event_result ]
+			return "no events were emitted" if @sender.enqueued_events.empty?
+			return "no %s events were emitted" % [ @expected_type ]
 		end
 		alias_method :failure_message_for_should, :failure_message
 
@@ -151,7 +113,7 @@ module Observability::SpecHelpers
 		### passed to a `to_not`.
 		def failure_message_when_negated
 			return self.describe_prelude_error if @prelude_error
-			return "expected not to run the async event, but it did"
+			return "expected not to emit a %s event, but one was sent" % [ @expected_type ]
 		end
 		alias_method :failure_message_for_should_not, :failure_message_when_negated
 
@@ -159,7 +121,7 @@ module Observability::SpecHelpers
 		### Return a String describing an error which happened in the spec's
 		### block before the event started.
 		def describe_prelude_error
-			return "%p before the event was sent: %s\n  " % [
+			return "%p before the event was emitted: %s\n  " % [
 				@prelude_error.class,
 				@prelude_error.message,
 				@prelude_error.backtrace.join( "\n  " )

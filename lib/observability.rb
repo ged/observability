@@ -70,8 +70,7 @@ module Observability
 		unless @observer.complete?
 			self.log.debug "Creating the observer agent."
 			@observer.try_set do
-				sender = Observability::Sender.get_subclass( Observability.sender_type )
-				obs = Observability::Observer.new( sender )
+				obs = Observability::Observer.new( Observability.sender_type )
 				obs.start
 				obs
 			end
