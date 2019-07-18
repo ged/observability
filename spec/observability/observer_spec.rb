@@ -27,7 +27,7 @@ describe Observability::Observer do
 		marker = nil
 
 		expect {
-			marker = subject.event( 'acme.daemon.start', time: 1563379346 )
+			marker = subject.event( 'acme.daemon.start' )
 		}.to change { subject.pending_event_count }.by( 1 )
 
 		expect( marker ).to be_an( Integer )
@@ -36,7 +36,7 @@ describe Observability::Observer do
 
 	it "sends an event when it is finished" do
 		observer = described_class.new( :testing )
-		observer.event( 'acme.engine.throttle', start: 1563379417, revs: 13045 )
+		observer.event( 'acme.engine.throttle' )
 
 		expect {
 			observer.finish
@@ -44,13 +44,12 @@ describe Observability::Observer do
 
 		event = observer.sender.enqueued_events.last
 		expect( event.type ).to eq( 'acme.engine.throttle' )
-		expect( event.fields ).to eq( start: 1563379417, revs: 13045 )
 	end
 
 
 	it "sends an event when it is finished with the correct marker" do
 		observer = described_class.new( :testing )
-		marker = observer.event( 'acme.startup', count: 8 )
+		marker = observer.event( 'acme.startup' )
 
 		expect {
 			observer.finish( marker )
@@ -61,13 +60,29 @@ describe Observability::Observer do
 	# :TODO: Should this behavior instead finish all events up to the specified marker instead?
 	it "raises when finished with the incorrect marker" do
 		observer = described_class.new( :testing )
-		first_marker = observer.event( 'acme.startup', time: 1563379417 )
-		second_marker = observer.event( 'acme.loop', count: 8 )
+		first_marker = observer.event( 'acme.startup' )
+		second_marker = observer.event( 'acme.loop' )
 
 		expect {
 			observer.finish( first_marker )
 		}.to raise_error( /event mismatch/i )
 	end
+
+
+	it "creates and event and finishes it immediately when passed a block" do
+		observer = described_class.new( :testing )
+
+		expect {
+			observer.event( 'acme.gate' ) do |obs|
+				obs.add( state: 'open' )
+			end
+		}.to change { observer.sender.enqueued_events.length }.by( 1 )
+
+		event =  observer.sender.enqueued_events.last
+		expect( event.type ).to eq( 'acme.gate' )
+		expect( event.fields ).to eq( state: 'open' )
+	end
+
 
 
 	context "event types" do
@@ -167,6 +182,28 @@ describe Observability::Observer do
 			event = observer.finish
 
 			expect( event.type ).to eq( "foo_library.bar.baz_adapter.start.loop" )
+		end
+
+	end
+
+
+	context "event options" do
+
+		it "allows additions to be made to new events directly" do
+			observer = described_class.new( :testing )
+			observer.event( 'acme.engine.throttle', add: { factor: 7 } )
+			event = observer.finish
+
+			expect( event.fields ).to include( factor: 7 )
+		end
+
+
+		it "adds " do
+			observer = described_class.new( :testing )
+			observer.event( 'acme.engine.throttle', add: { factor: 7 } )
+			event = observer.finish
+
+			expect( event.fields ).to include( factor: 7 )
 		end
 
 	end

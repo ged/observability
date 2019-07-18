@@ -28,7 +28,9 @@ module Observability
 
 		##
 		# The sender type to use
-		setting :sender_type, default: :null
+		setting :sender_type, default: :null do |value|
+			value ? value.to_sym : :null
+		end
 
 	end
 
@@ -88,7 +90,8 @@ module Observability
 	end
 
 
-	### (Undocumented)
+	### Make a body for a wrapping method for the method with the given +name+ and
+	### +context+, passing the given +options+.
 	def self::make_wrapped_method( name, context, options )
 		return Proc.new do |*m_args, **m_options, &block|
 			Loggability[ Observability ].debug "Wrapped method %p: %p" %

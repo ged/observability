@@ -70,3 +70,23 @@ and if the connection subsequently failed, it might be followed with:
 
     sequel.adapters.postgres.connect.failure
 
+
+## Event "Models"
+
+If you pass a `:model` option when creating an event, you can pre-populate an event with a bunch of useful datapoints. Some ideas for models:
+
+
+`process`
+: Adds information about the current process: e.g., `getrusage(2)` deltas, `pid`, `pgid`, `ppid`, `uid`, `euid`, `egid`, `utime`, `stime`, `cutime`, `cstime`
+: The context should be a method that is called when a process starts and which returns when the process is going to shut down or has been shut down.
+
+`loop`
+: Adds information about the execution of a loop: e.g., `getrusage(2)` deltas, GC stats, etc.
+: It should be created immediately inside the loop to be measured.
+
+`thread`
+: Adds information about the execution of a thread: e.g., thread ID, name, priority, etc.
+
+
+
+

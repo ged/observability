@@ -27,6 +27,12 @@ module Observability::ObserverHooks
 		Observability.observer.finish( marker ) if marker
 	end
 
+
+	### Return the current Observability observer agent.
+	def observer
+		return Observability.observer
+	end
+
 end # module Observability::ObserverHooks
 
 

@@ -52,10 +52,11 @@ class Observability::Observer
 
 
 	### Create a new event with the specified +type+ and make it the current one.
-	def event( type, **fields, &block )
+	def event( type, **options, &block )
 		type = self.type_from_object( type )
-		event = Observability::Event.new( type, **fields )
+		fields = self.fields_from_options( options )
 
+		event = Observability::Event.new( type, **fields )
 		@event_stack.value.push( event )
 
 		return self.finish_after_block( event.object_id, &block ) if block
@@ -66,7 +67,7 @@ class Observability::Observer
 	### Call the given +block+, then when it returns, finish the event that
 	### corresponds to the given +marker+.
 	def finish_after_block( marker, &block )
-		block.call
+		block.call( self )
 	rescue Exception => err
 		self.add( err )
 		raise
@@ -193,6 +194,26 @@ class Observability::Observer
 		meth = recv.method( methname )
 
 		return self.type_from_object( meth )
+	end
+
+
+	### Extract fields specified by the specified +options+ and return them all
+	### merged into one Hash.
+	### :TODO: Handle options like :model, :timed, etc.
+	def fields_from_options( options )
+		fields = {}
+
+		options.each do |key, value|
+			self.log.debug "Applying option %p: %p" % [ key, value ]
+			case key
+			when :add
+				fields.merge!( value )
+			else
+				raise "unknown event option %p" % [ key ]
+			end
+		end
+
+		return fields
 	end
 
 

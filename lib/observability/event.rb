@@ -41,5 +41,10 @@ class Observability::Event
 	end
 
 
+	### Return the event as a Hash.
+	def to_h
+		return self.fields.merge( :@type => self.type )
+	end
+
 end # class Observability::Event
 

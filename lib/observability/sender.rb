@@ -47,7 +47,7 @@ class Observability::Sender
 
 	### Start sending queued events.
 	def start
-		@executor = Concurrent::SingleThreadExecutor.new
+		@executor = Concurrent::SingleThreadExecutor.new( fallback_policy: :abort )
 		@executor.auto_terminate = true
 	end
 
@@ -66,7 +66,7 @@ class Observability::Sender
 
 	### Queue up the specified +events+ for sending.
 	def enqueue( *events )
-		return unless self.executor.running?
+		return unless self.executor
 		self.executor.post( *events ) do |*ev|
 			ev.each {|ev| self.send_event(ev) }
 		end
@@ -79,8 +79,7 @@ class Observability::Sender
 
 	### Send the specified +event+.
 	def send_event( event )
-		raise NotImplementedError,
-			"%p does not implement required method %s" % [ self.class, __method__ ]
+		self.log.warn "%p does not implement required method %s" % [ self.class, __method__ ]
 	end
 
 end # class Observability::Sender
