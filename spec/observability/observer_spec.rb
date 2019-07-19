@@ -84,7 +84,6 @@ describe Observability::Observer do
 	end
 
 
-
 	context "event types" do
 
 		it "can be set directly by passing a String" do
@@ -114,7 +113,7 @@ describe Observability::Observer do
 
 			event = observer.finish
 
-			expect( event.type ).to eq( "anonymous_module.#{mod.object_id}" )
+			expect( event.type ).to eq( "anonymous_module_#{mod.object_id}" )
 		end
 
 
@@ -135,7 +134,7 @@ describe Observability::Observer do
 
 			event = observer.finish
 
-			expect( event.type ).to eq( "anonymous_class.#{mod.object_id}" )
+			expect( event.type ).to eq( "anonymous_class_#{mod.object_id}" )
 		end
 
 

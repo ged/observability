@@ -60,10 +60,11 @@ module Observability
 
 		Observability.observer_hooks.compute_if_absent( mod ) do
 			observer_hooks = Observability::ObserverHooks.dup
-			observer_hooks.observed_system = mod.name || '<anonymous:%#x>' % [mod.object_id * 2]
 			mod.prepend( observer_hooks )
 			observer_hooks
 		end
+
+		mod.singleton_class.extend( Observability ) unless mod.singleton_class?
 	end
 
 
@@ -106,8 +107,8 @@ module Observability
 	# DSL Methods
 	#
 
-	### Wrap a method call in an observer call.
-	def observe( method_name, *details, **options )
+	### Wrap an instance method in an observer call.
+	def observe_method( method_name, *details, **options )
 		hooks = Observability.observer_hooks[ self ] or
 			raise "No observer hooks installed for %p?!" % [ self ]
 
@@ -116,6 +117,12 @@ module Observability
 		method_body = Observability.make_wrapped_method( method_name, context, options )
 
 		hooks.define_method( method_name, &method_body )
+	end
+
+
+	### Wrap a class method in an observer call.
+	def observe_class_method( method_name, *details, **options )
+		self.singleton_class.observe_method( method_name, *details, **options )
 	end
 
 

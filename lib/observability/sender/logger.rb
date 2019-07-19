@@ -31,7 +31,7 @@ class Observability::Sender::Logger < Observability::Sender
 
 	### Output the +event+ to the logger.
 	def send_event( event )
-		self.logger.debug( event.to_h )
+		self.logger.debug( event.resolve )
 	end
 
 end # class Observability::Sender::Log

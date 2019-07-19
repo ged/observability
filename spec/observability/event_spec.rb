@@ -39,5 +39,8 @@ describe Observability::Event do
 		}.to change { event.fields }.to( time: 1563379346, end_time: 1563379417 )
 	end
 
+
+	it 
+
 end
 

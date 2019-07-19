@@ -43,8 +43,16 @@ describe Observability do
 		new_mod = Module.new
 		new_mod.extend( described_class )
 		expect( described_class.observer_hooks.keys ).to include( new_mod )
-		expect( described_class.observer_hooks[new_mod] ).to be_a( Module ).
-			and( respond_to :observed_system )
+		expect( described_class.observer_hooks[new_mod] ).to be_a( Module )
+	end
+
+
+	it "tracks the hook modules of the singleton classes of all extended modules" do
+		new_mod = Module.new
+		new_mod.extend( described_class )
+		s_class = new_mod.singleton_class
+		expect( described_class.observer_hooks.keys ).to include( s_class )
+		expect( described_class.observer_hooks[s_class] ).to be_a( Module )
 	end
 
 
@@ -52,6 +60,11 @@ describe Observability do
 
 		let( :observed_class ) do
 			the_class = Class.new do
+
+				@class_things_done = 0
+				def self::do_a_class_thing
+					@class_things_done += 1
+				end
 
 				def initialize
 					@things_done = 0
@@ -70,11 +83,21 @@ describe Observability do
 
 
 		it "can decorate instance methods with observation" do
-			observed_class.observe( :do_a_thing )
+			observed_class.observe_method( :do_a_thing )
+			object = observed_class.new
 
 			expect {
-				observed_class.new.do_a_thing
-			}.to emit_event( "anonymous_class.#{observed_class.object_id}.do_a_thing" )
+				object.do_a_thing
+			}.to emit_event( "anonymous_class_#{observed_class.object_id}.#{object.object_id}.do_a_thing" )
+		end
+
+
+		it "can decorate class methods with observation" do
+			observed_class.observe_class_method( :do_a_class_thing )
+
+			expect {
+				observed_class.do_a_class_thing
+			}.to emit_event( "anonymous_class_#{observed_class.object_id}.do_a_class_thing" )
 		end
 
 	end

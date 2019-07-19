@@ -162,7 +162,7 @@ class Observability::Observer
 
 			return name.downcase
 		else
-			return "anonymous_%s.%d" % [ object.class.name.downcase, object.object_id ]
+			return "anonymous_%s_%d" % [ object.class.name.downcase, object.object_id ]
 		end
 	end
 
