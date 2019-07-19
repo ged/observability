@@ -32,7 +32,8 @@ class Observability::Collector::Timescale < Observability::Collector
 		super
 
 		@socket = UDPSocket.new
-		@db = nil
+		@db     = nil
+		@cursor = nil
 	end
 
 
@@ -49,6 +50,8 @@ class Observability::Collector::Timescale < Observability::Collector
 	### Start receiving events.
 	def start
 		@db = Sequel.connect( self.class.db )
+		@cursor = @db[ :events ].prepare( :insert, :insert_new_event, )
+		super
 	end
 
 
