@@ -13,22 +13,6 @@ class Observability::Sender::Logger < Observability::Sender
 	log_as :observability_events
 
 
-	### Look up the logger that'll be used.
-	def initialize( * )
-		super
-		@logger = Loggability[ self ]
-	end
-
-
-	######
-	public
-	######
-
-	##
-	# The Loggability::Logger that will be used as the event sink
-	attr_accessor :logger
-
-
 	### Output the +event+ to the logger.
 	def send_event( event )
 		self.logger.debug( event.resolve )

@@ -41,10 +41,11 @@ class Observability::Event
 	end
 
 
-	### Return the event as a Hash.
-	def to_h
+	### Finalize all of the event's data and return it as a Hash.
+	def resolve
 		return self.fields.merge( :@type => self.type )
 	end
+	alias_method :to_h, :resolve
 
 end # class Observability::Event
 

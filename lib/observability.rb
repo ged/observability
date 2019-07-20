@@ -35,9 +35,10 @@ module Observability
 	end
 
 
+	autoload :Collector, 'observability/collector'
 	autoload :Event, 'observability/event'
-	autoload :Observer, 'observability/observer'
 	autoload :ObserverHooks, 'observability/observer_hooks'
+	autoload :Observer, 'observability/observer'
 	autoload :Sender, 'observability/sender'
 
 
@@ -93,11 +94,13 @@ module Observability
 
 	### Make a body for a wrapping method for the method with the given +name+ and
 	### +context+, passing the given +options+.
-	def self::make_wrapped_method( name, context, options )
+	def self::make_wrapped_method( name, context, options, &callback )
 		return Proc.new do |*m_args, **m_options, &block|
 			Loggability[ Observability ].debug "Wrapped method %p: %p" %
 				[ name, context ]
 			Observability.observer.event( context, **options ) do
+				# :TODO: Freeze or dup the arguments to prevent accidental modification?
+				callback.call( *m_args, **m_options, &block ) if callback
 				super( *m_args, **m_options, &block )
 			end
 		end
@@ -108,21 +111,21 @@ module Observability
 	#
 
 	### Wrap an instance method in an observer call.
-	def observe_method( method_name, *details, **options )
+	def observe_method( method_name, *details, **options, &callback )
 		hooks = Observability.observer_hooks[ self ] or
 			raise "No observer hooks installed for %p?!" % [ self ]
 
 		context = self.instance_method( method_name )
 		context = [ context, *details ]
-		method_body = Observability.make_wrapped_method( method_name, context, options )
+		method_body = Observability.make_wrapped_method( method_name, context, options, &callback )
 
 		hooks.define_method( method_name, &method_body )
 	end
 
 
 	### Wrap a class method in an observer call.
-	def observe_class_method( method_name, *details, **options )
-		self.singleton_class.observe_method( method_name, *details, **options )
+	def observe_class_method( method_name, *details, **options, &callback )
+		self.singleton_class.observe_method( method_name, *details, **options, &callback )
 	end
 
 

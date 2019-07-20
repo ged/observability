@@ -11,7 +11,8 @@ require 'observability' unless defined?( Observability )
 
 class Observability::Collector
 	extend Loggability,
-		Pluggability
+		Pluggability,
+		Configurability
 
 	# Loggability API -- log to the Observability logger
 	log_to :observability
@@ -19,11 +20,17 @@ class Observability::Collector
 	# Set the directories to search for concrete subclassse
 	plugin_prefixes 'observability/collector'
 
+	# Configurability -- declare config settings and defaults
+	configurability( 'observability.collector' ) do
 
+		setting :type, default: 'timescale'
+
+	end
 
 
 	# Prevent direct instantiation
 	private_class_method :new
+
 
 	### Let subclasses be inherited
 	def self::inherited( subclass )
@@ -32,58 +39,16 @@ class Observability::Collector
 	end
 
 
-	### Set up some instance variables
-	def initialize # :notnew:
-		@executor = nil
+	### Start a collector of the specified +type+, returning only when it shuts down.
+	def self::start( type=self.class.type )
+		instance = self.create( type )
+		instance.start
 	end
 
 
-	######
-	public
-	######
-
-	##
-	# The processing executor.
-	attr_reader :executor
-
-
-	### Start sending queued events.
+	### Start the collector.
 	def start
-		@executor = Concurrent::SingleThreadExecutor.new( fallback_policy: :abort )
-		@executor.auto_terminate = true
-
-		@socket.bind
-	end
-
-
-	### Stop the sender's executor.
-	def stop
-		return if self.executor.shuttingdown? || self.executor.shutdown?
-
-		self.executor.shutdown
-		unless self.executor.wait_for_termination( 3 )
-			self.executor.halt
-			self.executor.wait_for_termination( 3 )
-		end
-	end
-
-
-	### Queue up the specified +events+ for sending.
-	def enqueue( *events )
-		return unless self.executor
-		self.executor.post( *events ) do |*ev|
-			ev.each {|ev| self.send_event(ev) }
-		end
-	end
-
-
-	#########
-	protected
-	#########
-
-	### Send the specified +event+.
-	def send_event( event )
-		self.log.warn "%p does not implement required method %s" % [ self.class, __method__ ]
+		# No-op
 	end
 
 end # class Observability::Collector

@@ -1,0 +1,16 @@
+#!/usr/bin/env ruby
+
+require 'configurability'
+require 'observability'
+require 'observability/collector'
+
+
+if ( configfile = ARGV.first )
+	config = Configurability::Config.load( configfile )
+else
+	config = Configurability.default_config
+end
+
+config.install
+Observability::Collector.start
+

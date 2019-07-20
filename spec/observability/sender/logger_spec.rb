@@ -15,7 +15,7 @@ describe Observability::Sender::Logger do
 		event = Observability::Event.new( 'acme.engine.start' )
 
 		log = []
-		Loggability.outputting_to( log ).formatted_with( :default ).for_logger( described_class ) do
+		Loggability.outputting_to( log ).formatted_with( :default ).with_level( :debug ) do
 			sender.enqueue( event )
 		end
 		sender.stop

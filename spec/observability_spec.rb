@@ -88,7 +88,7 @@ describe Observability do
 
 			expect {
 				object.do_a_thing
-			}.to emit_event( "anonymous_class_#{observed_class.object_id}.#{object.object_id}.do_a_thing" )
+			}.to emit_event( "anonymous_class_#{observed_class.object_id}.do_a_thing" )
 		end
 
 

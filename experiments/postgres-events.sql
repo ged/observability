@@ -23,11 +23,13 @@ GRANT CONNECT ON DATABASE observability TO application;
 CREATE EXTENSION IF NOT EXISTS timescaledb WITH SCHEMA public CASCADE;
 
 CREATE TABLE IF NOT EXISTS events (
-	id SERIAL PRIMARY KEY,
+	id SERIAL,
 	time TIMESTAMPTZ NOT NULL,
 	type TEXT NOT NULL,
 	version INTEGER NOT NULL,
-	data JSONB NOT NULL
+	data JSONB NOT NULL,
+
+	PRIMARY KEY (id, time)
 );
 SELECT create_hypertable( 'events', 'time' );
 
