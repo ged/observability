@@ -13,9 +13,21 @@ class Observability::Sender::Logger < Observability::Sender
 	log_as :observability_events
 
 
+	def start # :nodoc:
+		# No-op
+	end
+
+
+	def stop # :nodoc:
+		# No-op
+	end
+
+
 	### Output the +event+ to the logger.
-	def send_event( event )
-		self.logger.debug( event.resolve )
+	def enqueue( *events )
+		events.each do |event|
+			self.log.debug( event.resolve )
+		end
 	end
 
 end # class Observability::Sender::Log

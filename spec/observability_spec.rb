@@ -56,10 +56,32 @@ describe Observability do
 	end
 
 
+	it "provides a way to look up the hooks module for an extended module" do
+		new_mod = Module.new
+		new_mod.extend( described_class )
+
+		expect( described_class[new_mod] ).to be( described_class.observer_hooks[new_mod] )
+	end
+
+
+	it "provides a way to look up the hooks module via an instance of an extended class" do
+		new_class = Class.new
+		new_class.extend( described_class )
+
+		instance = new_class.new
+
+		expect( described_class[instance] ).to be( described_class.observer_hooks[new_class] )
+	end
+
+
 	describe "an including class" do
 
 		let( :observed_class ) do
 			the_class = Class.new do
+
+				def self::name
+					return "TestClass"
+				end
 
 				@class_things_done = 0
 				def self::do_a_class_thing
@@ -88,16 +110,20 @@ describe Observability do
 
 			expect {
 				object.do_a_thing
-			}.to emit_event( "anonymous_class_#{observed_class.object_id}.do_a_thing" )
+			}.to emit_event( "test_class.do_a_thing" )
 		end
 
 
 		it "can decorate class methods with observation" do
 			observed_class.observe_class_method( :do_a_class_thing )
 
+			# :FIXME: I want this to be the ID of the observed class instead, but
+			# I haven't figured out how to do this yet.
+			id = observed_class.singleton_class.object_id
+
 			expect {
 				observed_class.do_a_class_thing
-			}.to emit_event( "anonymous_class_#{observed_class.object_id}.do_a_class_thing" )
+			}.to emit_event( "anonymous_class_#{id}.do_a_class_thing" )
 		end
 
 	end

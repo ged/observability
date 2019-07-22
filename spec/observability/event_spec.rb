@@ -40,7 +40,7 @@ describe Observability::Event do
 	end
 
 
-	it 
+	it "runs fields which are callables when it is resolved"
 
 end
 

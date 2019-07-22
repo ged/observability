@@ -89,4 +89,15 @@ If you pass a `:model` option when creating an event, you can pre-populate an ev
 
 
 
+## Unresolved Issues
+
+- How should events sent from class methods be distinguished from instance methods of the same name?
+- The object ID used for the event name for events sent from wrapped methods of singleton methods of anonymous classes is that of the singleton class, not the anonymous class itself. Given how infrequent this will be the case I'm not sure it's worth solving.
+- Is it worth the additional cost of duping arguments to callbacks of wrapper methods to ensure they don't accidentally modify them?
+- Make observing with a null sender be more no-opish.
+
+
+
+
+
 

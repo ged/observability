@@ -45,6 +45,7 @@ class Observability::Sender::Testing < Observability::Sender
 		end
 	end
 
+
 	### Returns +true+ if at least one event of the specified +type+ was enqueued.
 	def event_was_sent?( type )
 		return !self.find_events( type ).empty?

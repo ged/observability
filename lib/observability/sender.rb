@@ -1,6 +1,7 @@
 # -*- ruby -*-
 # frozen_string_literal: true
 
+require 'json'
 require 'concurrent'
 require 'pluggability'
 
@@ -47,6 +48,7 @@ class Observability::Sender
 
 	### Start sending queued events.
 	def start
+		self.log.debug "Starting a %p" % [ self.class ]
 		@executor = Concurrent::SingleThreadExecutor.new( fallback_policy: :abort )
 		@executor.auto_terminate = true
 	end
@@ -54,10 +56,13 @@ class Observability::Sender
 
 	### Stop the sender's executor.
 	def stop
-		return if self.executor.shuttingdown? || self.executor.shutdown?
+		self.log.debug "Stopping the %p" % [ self.class ]
+		return if !self.executor || self.executor.shuttingdown? || self.executor.shutdown?
 
+		self.log.debug "  shutting down the executor"
 		self.executor.shutdown
 		unless self.executor.wait_for_termination( 3 )
+			self.log.debug "  killing the executor"
 			self.executor.halt
 			self.executor.wait_for_termination( 3 )
 		end
@@ -66,16 +71,35 @@ class Observability::Sender
 
 	### Queue up the specified +events+ for sending.
 	def enqueue( *events )
-		return unless self.executor
-		self.executor.post( *events ) do |*ev|
-			ev.each {|ev| self.send_event(ev) }
+		posted_event = Concurrent::Event.new
+
+		unless self.executor
+			self.log.debug "No executor; dropping %d events" % [ events.length ]
+			posted_event.set
+			return posted_event
 		end
+
+		self.executor.post( *events ) do |*ev|
+			serialized = self.serialize_events( ev.flatten )
+			serialized.each do |ev|
+				self.send_event( ev )
+			end
+			posted_event.set
+		end
+
+		return posted_event
 	end
 
 
 	#########
 	protected
 	#########
+
+	### Serialize each the given +events+ and return the results.
+	def serialize_events( events )
+		return events.map( &:resolve )
+	end
+
 
 	### Send the specified +event+.
 	def send_event( event )

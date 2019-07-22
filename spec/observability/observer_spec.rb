@@ -84,7 +84,7 @@ describe Observability::Observer do
 	end
 
 
-	context "event types" do
+	describe "event types" do
 
 		it "can be set directly by passing a String" do
 			observer = described_class.new( :testing )
@@ -186,7 +186,7 @@ describe Observability::Observer do
 	end
 
 
-	context "event options" do
+	describe "event options" do
 
 		it "allows additions to be made to new events directly" do
 			observer = described_class.new( :testing )
@@ -197,12 +197,83 @@ describe Observability::Observer do
 		end
 
 
-		it "adds " do
+		describe ":model" do
+
+			it "adds fields germane to processes for the process model"
+			it "adds fields germane to threads for the thread model"
+			it "adds fields germane to loops for the loop model"
+
+		end
+
+
+		describe ":timed" do
+
+			it "adds a calculated duration field"
+
+		end
+
+	end
+
+
+	describe "derived fields" do
+
+		it "can be added via an Exception" do
 			observer = described_class.new( :testing )
-			observer.event( 'acme.engine.throttle', add: { factor: 7 } )
+			observer.event( 'acme.engine.start' )
+
+			expect {
+				observer.finish_after_block do
+					raise "misfire!"
+				end
+			}.to raise_error( RuntimeError, 'misfire!' )
+
+			event = observer.sender.enqueued_events.last
+			expect( event.type ).to eq( 'acme.engine.start' )
+
+			expect( event.fields ).to include(
+				error: a_hash_including(
+					type: 'RuntimeError',
+					message: 'misfire!',
+					backtrace: an_instance_of( Array )
+				)
+			)
+			expect( event.fields[:error][:backtrace] ).
+				to all( be_a(Hash).and( include(:label, :path, :lineno) ) )
+		end
+
+
+		it "can be added for any object that responds to #to_h" do
+			observer = described_class.new( :testing )
+			observer.event( 'acme.engine.start' )
+
+			to_h_class = Class.new do
+				def to_h
+					return { sku: '121212', rev: '8c' }
+				end
+			end
+
+			observer.add( to_h_class.new )
 			event = observer.finish
 
-			expect( event.fields ).to include( factor: 7 )
+			expect( event.fields ).to include( sku: '121212', rev: '8c' )
+		end
+
+	end
+
+
+
+	describe "context" do
+
+		it "can be added for all inner events" do
+			observer = described_class.new( :testing )
+			event = observer.event( 'acme.engine.start' ) do
+				observer.add_context( request_id: 'E30E90E0-585B-4015-9C96-AE6EC487970C' )
+
+				inner_event = observer.event( 'acme.engine.rev' ) {}
+			end
+
+			expect( observer.sender.enqueued_events.map(&:resolve) ).
+				to all( include( request_id: 'E30E90E0-585B-4015-9C96-AE6EC487970C' ) )
 		end
 
 	end

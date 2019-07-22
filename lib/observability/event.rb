@@ -36,7 +36,7 @@ class Observability::Event
 
 	### Merge the specified +fields+ into the event's data.
 	### :TODO: Handle conflicts?
-	def merge( **fields )
+	def merge( fields )
 		self.fields.merge!( fields )
 	end
 

@@ -14,5 +14,48 @@ describe Observability::Sender do
 		}.to raise_error( NoMethodError, /private method `new'/i )
 	end
 
+
+	context "concrete subclasses" do
+
+		let( :subclass ) do
+			Class.new( described_class ) do
+				def initialize( * )
+					super
+					@sent = []
+				end
+				attr_reader :sent
+				def send_event( ev )
+					@sent << ev
+				end
+			end
+		end
+
+		let( :instance ) do
+			subclass.new
+		end
+
+
+		it "sends events after it's started" do
+			events = 12.times.map { Observability::Event.new('acme.windowwasher.refill') }
+
+			instance.start
+			instance.enqueue( *events ).wait( 0.5 )
+			instance.stop
+
+			expect( instance.sent ).to contain_exactly( *(events.map(&:resolve)) )
+		end
+
+
+		it "drops events if it hasn't been started yet" do
+			events = 8.times.map { Observability::Event.new('acme.windowwasher.refill') }
+
+			instance.enqueue( *events ).wait( 0.5 )
+
+			expect( instance.sent ).to be_empty
+		end
+
+
+	end
+
 end
 

@@ -1,4 +1,4 @@
 /html/
 doc/
-
 coverage/
+^ChangeLog$

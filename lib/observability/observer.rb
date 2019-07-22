@@ -27,6 +27,7 @@ class Observability::Observer
 	def initialize( sender_type=DEFAULT_SENDER_TYPE )
 		@sender = Observability::Sender.create( sender_type )
 		@event_stack = Concurrent::ThreadLocalVar.new( &Array.method(:new) )
+		@context_stack = Concurrent::ThreadLocalVar.new( &Array.method(:new) )
 	end
 
 
@@ -59,20 +60,11 @@ class Observability::Observer
 		event = Observability::Event.new( type, **fields )
 		@event_stack.value.push( event )
 
+		new_context = @context_stack.value.last&.dup || {}
+		@context_stack.value.push( new_context )
+
 		return self.finish_after_block( event.object_id, &block ) if block
 		return event.object_id
-	end
-
-
-	### Call the given +block+, then when it returns, finish the event that
-	### corresponds to the given +marker+.
-	def finish_after_block( marker, &block )
-		block.call( self )
-	rescue Exception => err
-		self.add( err )
-		raise
-	ensure
-		self.finish( marker )
 	end
 
 
@@ -86,12 +78,27 @@ class Observability::Observer
 			event_marker && @event_stack.value.last.object_id != event_marker
 
 		event = @event_stack.value.pop
+		context = @context_stack.value.pop
+		self.log.debug "Adding context %p to finishing event." % [ context ]
+		event.merge( context )
 		event.freeze
 
 		self.log.debug "Finishing event: %p" % [ event ]
 		self.sender.enqueue( event )
 
 		return event
+	end
+
+
+	### Call the given +block+, then when it returns, finish the event that
+	### corresponds to the given +marker+.
+	def finish_after_block( event_marker=nil, &block )
+		block.call( self )
+	rescue Exception => err
+		self.add( err )
+		raise
+	ensure
+		self.finish( event_marker )
 	end
 
 
@@ -106,6 +113,21 @@ class Observability::Observer
 		end
 
 		event.merge( fields )
+	end
+
+
+	### Add the specified +fields+ to the current event and any that are created
+	### before the current event is finished.
+	def add_context( object=nil, **fields )
+		self.log.warn "Adding context from %p" % [ object ]
+		current_context = @context_stack.value.last or return
+
+		if object
+			object_fields = self.fields_from_object( object )
+			fields = fields.merge( object_fields )
+		end
+
+		current_context.merge!( fields )
 	end
 
 
@@ -126,23 +148,32 @@ class Observability::Observer
 	protected
 	#########
 
+	#
+	# Types
+	#
+
 	### Derive an event type from the specified +object+ and an optional +block+
 	### that provides additional context.
 	def type_from_object( object, block=nil )
 		case object
 		when Module
+			self.log.debug "Deriving a type from module %p" % [ object ]
 			return self.type_from_module( object )
 
 		when Method, UnboundMethod
+			self.log.debug "Deriving a type from method %p" % [ object ]
 			return self.type_from_method( object )
 
 		when Array
+			self.log.debug "Deriving a type from context %p" % [ object ]
 			return self.type_from_context( *object )
 
 		when Proc
+			self.log.debug "Deriving a type from context proc %p" % [ object ]
 			return self.type_from_context_proc( object )
 
 		when String
+			self.log.debug "Using string %p as type" % [ object ]
 			return object
 
 		else
@@ -196,6 +227,10 @@ class Observability::Observer
 		return self.type_from_object( meth )
 	end
 
+
+	#
+	# Fields
+	#
 
 	### Extract fields specified by the specified +options+ and return them all
 	### merged into one Hash.

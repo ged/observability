@@ -2,6 +2,7 @@
 # frozen_string_literal: true
 
 require 'concurrent'
+require 'concurrent/configuration'
 require 'configurability'
 require 'loggability'
 
@@ -21,6 +22,9 @@ module Observability
 
 	# Loggability -- Create a logger
 	log_as :observability
+	Concurrent.global_logger = lambda do |loglevel, progname, message=nil, &block|
+		Observability.logger.add( loglevel, message, progname, &block )
+	end
 
 
 	# Configuration settings
@@ -127,13 +131,6 @@ module Observability
 	def observe_class_method( method_name, *details, **options, &callback )
 		self.singleton_class.observe_method( method_name, *details, **options, &callback )
 	end
-
-
-	### Set the +description+ of the observed system for the receiver.
-	def observed_system( description )
-		Observability.observer_hooks[ self ]&.description = description
-	end
-
 
 end # module Observability
 

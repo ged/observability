@@ -14,18 +14,12 @@ module Observability::ObserverHooks
 		raise LocalJumpError, "no block given" unless block
 
 		marker = Observability.observer.event( [block, detail], **options )
-		block.call
-
-	rescue Exception => err
-		Observability.observer.add( err )
-		raise
-	ensure
-		Observability.observer.finish( marker ) if marker
+		Observability.observer.finish_after_block( marker, &block )
 	end
 
 
 	### Return the current Observability observer agent.
-	def observer
+	def observability
 		return Observability.observer
 	end
 
