@@ -38,6 +38,7 @@ hoespec = Hoe.spec 'observability' do |spec|
 	spec.dependency 'pluggability', '~> 0.6'
 	spec.dependency 'msgpack', '~> 1.3'
 
+	spec.dependency 'timecop', '~> 0.9', :developer
 	spec.dependency 'hoe-deveiate', '~> 0.3', :developer
 	spec.dependency 'simplecov', '~> 0.7', :developer
 	spec.dependency 'rdoc-generator-fivefish', '~> 0.1', :developer

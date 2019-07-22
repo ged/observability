@@ -8,3 +8,4 @@ loggability
 msgpack
 pluggability
 simplecov
+timecop

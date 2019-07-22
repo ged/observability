@@ -81,7 +81,6 @@ class Observability::Observer
 		context = @context_stack.value.pop
 		self.log.debug "Adding context %p to finishing event." % [ context ]
 		event.merge( context )
-		event.freeze
 
 		self.log.debug "Finishing event: %p" % [ event ]
 		self.sender.enqueue( event )
