@@ -10,7 +10,8 @@ require 'observability' unless defined?( Observability )
 
 class Observability::Sender
 	extend Pluggability,
-		Loggability
+		Loggability,
+		Configurability
 
 
 	# Logs go to the main module
@@ -18,6 +19,15 @@ class Observability::Sender
 
 	# Set the prefix for derivative classes
 	plugin_prefixes 'observability/sender'
+
+	# Configuration settings
+	configurability( 'observability.sender' ) do
+
+		##
+		# The sender type to use
+		setting :type, default: :null
+
+	end
 
 
 
@@ -28,6 +38,12 @@ class Observability::Sender
 	def self::inherited( subclass )
 		super
 		subclass.public_class_method( :new )
+	end
+
+
+	### Return an instance of the configured type of Sender.
+	def self::configured_type
+		return self.create( self.type )
 	end
 
 

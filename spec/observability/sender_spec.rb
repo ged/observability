@@ -3,15 +3,31 @@
 require_relative '../spec_helper'
 
 require 'observability/sender'
+require 'observability/sender/testing'
 require 'observability/event'
 
 
 describe Observability::Sender do
 
+	after( :all ) do
+		described_class.configure
+	end
+
+	before( :each ) do
+		described_class.configure
+	end
+
+
 	it "is an abstract class" do
 		expect {
 			described_class.new
 		}.to raise_error( NoMethodError, /private method `new'/i )
+	end
+
+
+	it "can create an instance of the configured type of sender" do
+		described_class.configure( type: :testing )
+		expect( described_class.configured_type ).to be_a( Observability::Sender::Testing )
 	end
 
 

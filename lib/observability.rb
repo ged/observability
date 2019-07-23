@@ -9,8 +9,7 @@ require 'loggability'
 
 # A mixin that adds effortless Observability to your systems.
 module Observability
-	extend Loggability,
-	       Configurability
+	extend Loggability
 
 
 	# Package version
@@ -25,19 +24,6 @@ module Observability
 	Concurrent.global_logger = lambda do |loglevel, progname, message=nil, &block|
 		Observability.logger.add( loglevel, message, progname, &block )
 	end
-
-
-	# Configuration settings
-	configurability( :observability ) do
-
-		##
-		# The sender type to use
-		setting :sender_type, default: :null do |value|
-			value ? value.to_sym : :null
-		end
-
-	end
-
 
 	autoload :Collector, 'observability/collector'
 	autoload :Event, 'observability/event'
@@ -78,7 +64,7 @@ module Observability
 		unless @observer.complete?
 			self.log.debug "Creating the observer agent."
 			@observer.try_set do
-				obs = Observability::Observer.new( Observability.sender_type )
+				obs = Observability::Observer.new
 				obs.start
 				obs
 			end

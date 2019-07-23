@@ -11,9 +11,6 @@ class Observability::Observer
 	extend Loggability
 
 
-	# The default type of sender to construct
-	DEFAULT_SENDER_TYPE = :null
-
 	# Pattern for finding places for underscores when changing a camel-cased string
 	# to a snake-cased one.
 	SNAKE_CASE_SEPARATOR = /(\P{Upper}\p{Upper}|\p{Lower}\P{Lower})/
@@ -24,8 +21,8 @@ class Observability::Observer
 
 
 	### Create a new Observer that will send events via the specified +sender+.
-	def initialize( sender_type=DEFAULT_SENDER_TYPE )
-		@sender = Observability::Sender.create( sender_type )
+	def initialize( sender_type=nil )
+		@sender = self.configured_sender( sender_type )
 		@event_stack = Concurrent::ThreadLocalVar.new( &Array.method(:new) )
 		@context_stack = Concurrent::ThreadLocalVar.new( &Array.method(:new) )
 	end
@@ -281,6 +278,14 @@ class Observability::Observer
 				backtrace: trace_frames
 			}
 		}
+	end
+
+
+	### Create an instance of the given +sender_type+, or the type specified in the
+	### configuration if +sender_type+ is nil.
+	def configured_sender( sender_type )
+		return Observability::Sender.create( sender_type ) if sender_type
+		return Observability::Sender.configured_type
 	end
 
 end # class Observability::Observer

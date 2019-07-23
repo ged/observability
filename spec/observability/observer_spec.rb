@@ -18,17 +18,20 @@ end
 describe Observability::Observer do
 
 	it "can be created with a default sender" do
-		expect( subject ).to be_a( described_class )
-		expect( subject.sender ).to be_a( Observability::Sender )
+		observer = described_class.new
+
+		expect( observer ).to be_a( described_class )
+		expect( observer.sender ).to be_a( Observability::Sender )
 	end
 
 
 	it "can create a new event" do
 		marker = nil
+		observer = described_class.new
 
 		expect {
-			marker = subject.event( 'acme.daemon.start' )
-		}.to change { subject.pending_event_count }.by( 1 )
+			marker = observer.event( 'acme.daemon.start' )
+		}.to change { observer.pending_event_count }.by( 1 )
 
 		expect( marker ).to be_an( Integer )
 	end
