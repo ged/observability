@@ -39,9 +39,15 @@ class Observability::Collector
 	end
 
 
+	### Create an instance of the configured type of collector and return it.
+	def self::configured_type
+		return self.create( self.type )
+	end
+
+
 	### Start a collector of the specified +type+, returning only when it shuts down.
-	def self::start( type=self.class.type )
-		instance = self.create( type )
+	def self::start
+		instance = self.configured_type
 		instance.start
 	end
 

@@ -15,7 +15,7 @@ class Observability::Collector::Timescale < Observability::Collector
 
 
 	# The maximum size of event messages
-	MAX_EVENT_BYTES = 64.kilobytes
+	MAX_EVENT_BYTES = 64 * 1024
 
 	# The number of seconds to wait between IO loops
 	LOOP_TIMER = 0.25
@@ -65,7 +65,12 @@ class Observability::Collector::Timescale < Observability::Collector
 		self.log.info "Starting up."
 		@db = Sequel.connect( self.class.db )
 		@db.extension( :pg_json )
-		@cursor = @db[ :events ].prepare( :insert, :insert_new_event,  )
+		# @cursor = @db[ :events ].prepare( :insert, :insert_new_event,
+		# 	 time: :$time,
+		# 	 type: :$type,
+		# 	 version: :$version,
+		# 	 data: :$data
+		# )
 
 		@socket.bind( self.class.host, self.class.port )
 
@@ -84,8 +89,10 @@ class Observability::Collector::Timescale < Observability::Collector
 
 	### Start consuming incoming events and storing them.
 	def start_processing
+		@processing = true
 		while @processing
 			event = self.read_next_event or next
+			self.log.debug "Read event: %p" % [ event ]
 			self.store_event( event )
 		end
 	end
@@ -99,10 +106,18 @@ class Observability::Collector::Timescale < Observability::Collector
 
 	### Read the next event from the socket
 	def read_next_event
-		data = @socket.recv_nonblock( MAX_EVENT_BYTES )
-		return JSON.parse( data, JSON_CONFIG )
-	rescue IO::WaitReadable
-		retry if IO.select( [@socket], nil, nil, LOOP_TIMER )
+		self.log.debug "Reading next event."
+		data = @socket.recv_nonblock( MAX_EVENT_BYTES, exception: false )
+
+		if data == :wait_readable
+			IO.select( [@socket], nil, nil, LOOP_TIMER )
+			return nil
+		elsif data.empty?
+			return nil
+		else
+			self.log.info "Read %d bytes" % [ data.bytesize ]
+			return JSON.parse( data )
+		end
 	end
 
 
@@ -112,7 +127,13 @@ class Observability::Collector::Timescale < Observability::Collector
 		type    = event.delete('@type')
 		version = event.delete('@version')
 
-		@cursor.call( time: time, type: type, version: version, data: event )
+		# @cursor.call( time: time, type: type, version: version, data: event )
+		@db[ :events ].insert(
+			 time: time,
+			 type: type,
+			 version: version,
+			 data: Sequel.pg_json( event )
+		)
 	end
 
 end # class Observability::Collector::UDP

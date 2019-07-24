@@ -26,7 +26,9 @@ class Observability::Sender::Logger < Observability::Sender
 	### Output the +event+ to the logger.
 	def enqueue( *events )
 		events.each do |event|
-			self.log.debug( event.resolve )
+			data = event.resolve
+			msg = "«%s» %p" % [ data[:@type], data ]
+			self.log.debug( msg )
 		end
 	end
 

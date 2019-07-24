@@ -76,7 +76,8 @@ class Observability::Observer
 
 		event = @event_stack.value.pop
 		context = @context_stack.value.pop
-		self.log.debug "Adding context %p to finishing event." % [ context ]
+		self.log.debug "Adding context %p (%d left) to finishing event." %
+			[ context, @context_stack.value.length ]
 		event.merge( context )
 
 		self.log.debug "Finishing event: %p" % [ event ]
@@ -100,7 +101,7 @@ class Observability::Observer
 
 	### Add an +object+ and/or a Hash of +fields+ to the current event.
 	def add( object=nil, **fields )
-		self.log.warn "Adding %p" % [ object ]
+		self.log.debug "Adding %p" % [ object || fields ]
 		event = @event_stack.value.last or return
 
 		if object
@@ -115,7 +116,7 @@ class Observability::Observer
 	### Add the specified +fields+ to the current event and any that are created
 	### before the current event is finished.
 	def add_context( object=nil, **fields )
-		self.log.warn "Adding context from %p" % [ object ]
+		self.log.debug "Adding context from %p" % [ object || fields ]
 		current_context = @context_stack.value.last or return
 
 		if object
@@ -239,6 +240,9 @@ class Observability::Observer
 			case key
 			when :add
 				fields.merge!( value )
+			when :timed
+				duration_callback = lambda {|ev| Concurrent.monotonic_time - ev.start }
+				fields.merge!( duration: duration_callback )
 			else
 				raise "unknown event option %p" % [ key ]
 			end

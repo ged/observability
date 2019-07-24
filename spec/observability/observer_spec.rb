@@ -196,7 +196,7 @@ describe Observability::Observer do
 			observer.event( 'acme.engine.throttle', add: { factor: 7 } )
 			event = observer.finish
 
-			expect( event.fields ).to include( factor: 7 )
+			expect( event.resolve ).to include( factor: 7 )
 		end
 
 
@@ -211,7 +211,14 @@ describe Observability::Observer do
 
 		describe ":timed" do
 
-			it "adds a calculated duration field"
+			it "adds a calculated duration field" do
+				observer = described_class.new( :testing )
+				observer.event( 'acme.engine.run', timed: true )
+				sleep 0.1
+				event = observer.finish
+
+				expect( event.resolve ).to include( duration: a_value > 0.1 )
+			end
 
 		end
 
@@ -240,7 +247,7 @@ describe Observability::Observer do
 					backtrace: an_instance_of( Array )
 				)
 			)
-			expect( event.fields[:error][:backtrace] ).
+			expect( event.resolve[:error][:backtrace] ).
 				to all( be_a(Hash).and( include(:label, :path, :lineno) ) )
 		end
 
@@ -258,7 +265,7 @@ describe Observability::Observer do
 			observer.add( to_h_class.new )
 			event = observer.finish
 
-			expect( event.fields ).to include( sku: '121212', rev: '8c' )
+			expect( event.resolve ).to include( sku: '121212', rev: '8c' )
 		end
 
 	end

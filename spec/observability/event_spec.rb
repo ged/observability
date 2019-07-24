@@ -62,8 +62,17 @@ describe Observability::Event do
 		Timecop.freeze( Time.at(1563821278.609382) ) do
 			expect( Time.now.to_f ).to eq( 1563821278.609382 )
 			event = described_class.new( 'acme.user.review' )
-			expect( event.resolve ).to include( :@timestamp => "2019-07-22T11:47:58-07:00" )
+			expect( event.resolve ).to include(
+				:@timestamp => a_string_matching( /2019-07-22T11:47:58\.\d{6}-07:00/ )
+			)
 		end
+	end
+
+
+	it "has a monotonic timestamp of when it was created" do
+		event = described_class.new( 'acme.daemon.start' )
+
+		expect( event.start ).to be_a( Float ).and( be < Concurrent.monotonic_time )
 	end
 
 

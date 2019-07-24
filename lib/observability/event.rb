@@ -4,6 +4,7 @@
 require 'time'
 require 'forwardable'
 require 'loggability'
+require 'concurrent'
 
 require 'observability' unless defined?( Observability )
 
@@ -11,6 +12,10 @@ require 'observability' unless defined?( Observability )
 class Observability::Event
 	extend Loggability,
 		Forwardable
+
+
+	# The event format version to send with all events
+	FORMAT_VERSION = 1
 
 
 	# Loggability API -- send logs to the top-level module's logger
@@ -21,6 +26,7 @@ class Observability::Event
 	def initialize( type, **fields )
 		@type      = type.freeze
 		@timestamp = Time.now
+		@start     = Concurrent.monotonic_time
 		@fields    = fields
 	end
 
@@ -38,8 +44,13 @@ class Observability::Event
 	attr_reader :timestamp
 
 	##
+	# The monotonic clock time of when the event was created
+	attr_reader :start
+
+	##
 	# A Symbol-keyed Hash of values that make up the event data
 	attr_reader :fields
+
 
 	##
 	# Delegate some read-only methods to the #fields Hash.
@@ -59,7 +70,11 @@ class Observability::Event
 	def resolve
 		unless @fields.frozen?
 			self.log.debug "Resolving event %#x" % [ self.object_id ]
-			data = self.fields.merge( :@type => self.type, :@timestamp => self.timestamp )
+			data = self.fields.merge(
+				:@type => self.type,
+				:@timestamp => self.timestamp,
+				:@version => FORMAT_VERSION
+			)
 			data = data.transform_values( &self.method(:resolve_value) )
 			@fields = data.freeze
 		end
@@ -77,7 +92,7 @@ class Observability::Event
 			return value.call( self )
 
 		when value.respond_to?( :iso8601 ) # Time, Date, DateTime, etc.
-			return value.iso8601
+			return value.iso8601( 6 )
 
 		else
 			return value
