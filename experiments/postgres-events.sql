@@ -20,9 +20,10 @@ CREATE DATABASE observability WITH OWNER postgres ENCODING = 'utf-8';
 GRANT ALL ON DATABASE observability TO migrator WITH GRANT OPTION;
 GRANT CONNECT ON DATABASE observability TO application;
 
-SET ROLE admin;
-CREATE EXTENSION timescaledb WITH SCHEMA public CASCADE;
-RESET ROLE;
+\c observability
+
+CREATE EXTENSION IF NOT EXISTS timescaledb WITH SCHEMA public CASCADE;
+CREATE EXTENSION IF NOT EXISTS pg_trgm WITH SCHEMA public CASCADE;
 
 CREATE TABLE IF NOT EXISTS events (
 	id SERIAL,
@@ -31,10 +32,9 @@ CREATE TABLE IF NOT EXISTS events (
 	version INTEGER NOT NULL,
 	data JSONB NOT NULL,
 
-	PRIMARY KEY (id, time),
-	index (type)
+	PRIMARY KEY (id, time)
 );
+CREATE INDEX IF NOT EXISTS type_idx ON events (type);
+CREATE INDEX IF NOT EXISTS type_trgm ON events USING GIN (type gin_trgm_ops);
 SELECT create_hypertable( 'events', 'time' );
-
-
 
