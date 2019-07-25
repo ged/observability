@@ -83,7 +83,7 @@ class Observability::Collector::Timescale < Observability::Collector
 		self.stop_processing
 
 		@cursor = nil
-		@db.disconnct
+		@db.disconnect
 	end
 
 
