@@ -14,7 +14,6 @@ Hoe.plugin :signing
 Hoe.plugin :deveiate
 
 Hoe.plugins.delete :rubyforge
-Hoe.plugins.delete :gemcutter # Remove for public gems
 
 hoespec = Hoe.spec 'observability' do |spec|
 	spec.readme_file = 'README.md'
@@ -76,9 +75,9 @@ if File.directory?( '.hg' )
 
 	Rake::Task[ 'docs' ].clear
 	RDoc::Task.new( 'docs' ) do |rdoc|
-	    rdoc.main = "README.rdoc"
+	    rdoc.main = "README.md"
 		rdoc.markup = 'markdown'
-	    rdoc.rdoc_files.include( "*.rdoc", "ChangeLog", "lib/**/*.rb" )
+	    rdoc.rdoc_files.include( "*.md", "*.rdoc", "ChangeLog", "lib/**/*.rb" )
 	    rdoc.generator = :fivefish
 		rdoc.title = 'Observability'
 	    rdoc.rdoc_dir = 'doc'
