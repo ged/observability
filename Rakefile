@@ -42,7 +42,7 @@ hoespec = Hoe.spec 'observability' do |spec|
 	spec.dependency 'simplecov', '~> 0.7', :developer
 	spec.dependency 'rdoc-generator-fivefish', '~> 0.1', :developer
 
-	spec.require_ruby_version( '>=2.4.0' )
+	spec.require_ruby_version( '>=2.6.0' )
 	spec.hg_sign_tags = true if spec.respond_to?( :hg_sign_tags= )
 	spec.check_history_on_release = true if spec.respond_to?( :check_history_on_release= )
 

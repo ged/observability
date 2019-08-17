@@ -25,7 +25,9 @@ class Observability::Sender
 
 		##
 		# The sender type to use
-		setting :type, default: :null
+		setting :type, default: :null do |value|
+			value && value.to_sym
+		end
 
 	end
 
