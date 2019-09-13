@@ -252,6 +252,37 @@ describe Observability::Observer do
 		end
 
 
+		it "can be added for a secondary Exception" do
+			observer = described_class.new( :testing )
+			observer.event( 'acme.engine.start' )
+
+			expect {
+				observer.finish_after_block do
+					begin
+						raise "misfire!"
+					rescue => err
+						raise ArgumentError, "Cleared a misfire."
+					end
+				end
+			}.to raise_error( ArgumentError, 'Cleared a misfire.' )
+
+			event = observer.sender.enqueued_events.last
+			expect( event.type ).to eq( 'acme.engine.start' )
+
+			expect( event.fields ).to include(
+				error: a_hash_including(
+					type: 'ArgumentError',
+					message: 'Cleared a misfire.',
+					cause: a_hash_including(
+						type: 'RuntimeError',
+						message: 'misfire!',
+						backtrace: an_instance_of( Array )
+					)
+				)
+			)
+		end
+
+
 		it "can be added for any object that responds to #to_h" do
 			observer = described_class.new( :testing )
 			observer.event( 'acme.engine.start' )
@@ -269,7 +300,6 @@ describe Observability::Observer do
 		end
 
 	end
-
 
 
 	describe "context" do

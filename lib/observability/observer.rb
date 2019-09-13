@@ -271,17 +271,23 @@ class Observability::Observer
 	### Return a Hash of fields to add to the current event derived from the given
 	### +exception+ object.
 	def fields_from_exception( exception )
-		trace_frames = exception.backtrace_locations.map do |loc|
-			{ label: loc.label, path: loc.absolute_path, lineno: loc.lineno }
+		fields = {
+			type: exception.class.name,
+			message: exception.message,
+		}
+
+		if exception.cause
+			cause_fields = self.fields_from_exception( exception.cause )
+			fields[ :cause ] = cause_fields[ :error ]
 		end
 
-		return {
-			error: {
-				type: exception.class.name,
-				message: exception.message,
-				backtrace: trace_frames
-			}
-		}
+		if ( locations = exception.backtrace_locations )
+			fields[ :backtrace ] = locations.map do |loc|
+				{ label: loc.label, path: loc.absolute_path, lineno: loc.lineno }
+			end
+		end
+
+		return { error: fields }
 	end
 
 

@@ -1,4 +1,5 @@
 source "https://rubygems.org/"
+ruby "~> 2.6"
 
 gem 'concurrent-ruby', '~> 1.1.5'
 gem 'concurrent-ruby-ext', '~> 1.1.5'
