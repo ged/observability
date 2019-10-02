@@ -1,4 +1,15 @@
-#!/usr/bin/env rake
+#!/usr/bin/env ruby -S rake
+
+require 'rake/deveiate'
+
+# Dogfood
+$LOAD_PATH.unshift( 'lib', '../rake-deveiate/lib' )
+
+Rake::DevEiate.setup( 'observability' )
+
+
+
+__END__
 
 begin
 	require 'hoe'
@@ -29,18 +40,6 @@ hoespec = Hoe.spec 'observability' do |spec|
 	}
 
 	spec.developer 'Michael Granger', 'ged@FaerieMUD.org'
-
-	spec.dependency 'concurrent-ruby', '~> 1.1.5'
-	spec.dependency 'concurrent-ruby-ext', '~> 1.1.5'
-	spec.dependency 'loggability', '~> 0.11'
-	spec.dependency 'configurability', '~> 3.3'
-	spec.dependency 'pluggability', '~> 0.6'
-	spec.dependency 'msgpack', '~> 1.3'
-
-	spec.dependency 'timecop', '~> 0.9', :developer
-	spec.dependency 'hoe-deveiate', '~> 0.3', :developer
-	spec.dependency 'simplecov', '~> 0.7', :developer
-	spec.dependency 'rdoc-generator-fivefish', '~> 0.1', :developer
 
 	spec.require_ruby_version( '>=2.6.0' )
 	spec.hg_sign_tags = true if spec.respond_to?( :hg_sign_tags= )

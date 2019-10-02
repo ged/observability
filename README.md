@@ -1,7 +1,7 @@
 # Observability
 
 code
-: http://bitbucket.org/ged/observability
+: https://hg.sr.ht/~ged/Observability
 
 github
 : https://github.com/ged/observability
@@ -12,8 +12,8 @@ docs
 
 ## Description
 
-Observability is a toolkit for instrumenting code to make it more observable,
-following the principle of Observability-Oriented Design as expressed by Charity
+Observability is a toolkit for instrumenting code to make it more observable.
+It follows the principle of Observability-Oriented Design as expressed by Charity
 Majors (@mipsytipsy).
 
 Its goals are [stolen from https://charity.wtf/2019/02/05/logs-vs-structured-events/]:
@@ -46,7 +46,7 @@ Its goals are [stolen from https://charity.wtf/2019/02/05/logs-vs-structured-eve
 ## Contributing
 
 You can check out the current development source with Mercurial via its
-[project page][bitbucket]. Or if you prefer Git, via 
+[project page][sourcehut]. Or if you prefer Git, via 
 [its Github mirror][github].
 
 After checking out the source, run:
@@ -55,6 +55,11 @@ After checking out the source, run:
 
 This task will install any missing dependencies, run the tests/specs,
 and generate the API documentation.
+
+
+## Author
+
+- Michael Granger <ged@faeriemud.org>
 
 
 ## License
@@ -88,6 +93,6 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
-[bitbucket]: http://bitbucket.org/ged/observability
+[sourcehut]: https://hg.sr.ht/~ged/Observability
 [github]: https://github.com/ged/observability
 

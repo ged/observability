@@ -27,6 +27,7 @@ module Observability
 
 	autoload :Collector, 'observability/collector'
 	autoload :Event, 'observability/event'
+	autoload :Instrumentation, 'observability/instrumentation'
 	autoload :ObserverHooks, 'observability/observer_hooks'
 	autoload :Observer, 'observability/observer'
 	autoload :Sender, 'observability/sender'
@@ -56,6 +57,12 @@ module Observability
 		end
 
 		mod.singleton_class.extend( Observability ) unless mod.singleton_class?
+	end
+
+
+	### Install the default instrumentatin for one or more +libraries+.
+	def self::install_instrumentation( *libraries )
+		Observability::Instrumentation.load( *libraries )
 	end
 
 
