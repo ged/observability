@@ -1,5 +1,5 @@
 --
--- FaerieMUD PostgreSQL DDL
+-- Observability Timescale (PostgreSQL) Store DDL
 --
 
 SET statement_timeout = 0;
@@ -25,7 +25,7 @@ GRANT CONNECT ON DATABASE observability TO application;
 CREATE EXTENSION IF NOT EXISTS timescaledb WITH SCHEMA public CASCADE;
 CREATE EXTENSION IF NOT EXISTS pg_trgm WITH SCHEMA public CASCADE;
 
-CREATE TABLE IF NOT EXISTS events (
+CREATE TABLE events (
 	id SERIAL,
 	time TIMESTAMPTZ NOT NULL,
 	type TEXT NOT NULL,
@@ -34,7 +34,7 @@ CREATE TABLE IF NOT EXISTS events (
 
 	PRIMARY KEY (id, time)
 );
-CREATE INDEX IF NOT EXISTS type_idx ON events (type);
-CREATE INDEX IF NOT EXISTS type_trgm ON events USING GIN (type gin_trgm_ops);
+CREATE INDEX type_idx ON events (type);
+CREATE INDEX type_trgm ON events USING GIN (type gin_trgm_ops);
 SELECT create_hypertable( 'events', 'time' );
 
