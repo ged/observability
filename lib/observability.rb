@@ -63,6 +63,7 @@ module Observability
 	### Install the default instrumentatin for one or more +libraries+.
 	def self::install_instrumentation( *libraries )
 		Observability::Instrumentation.load( *libraries )
+		Observability::Instrumentation.install
 	end
 
 

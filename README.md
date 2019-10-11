@@ -46,7 +46,7 @@ Its goals are [stolen from https://charity.wtf/2019/02/05/logs-vs-structured-eve
 ## Contributing
 
 You can check out the current development source with Mercurial via its
-[project page][sourcehut]. Or if you prefer Git, via 
+[project page][sourcehut]. Or if you prefer Git, via
 [its Github mirror][github].
 
 After checking out the source, run:
