@@ -32,16 +32,8 @@ class Observability::Collector::Timescale < Observability::Collector
 	configurability( 'observability.collector.timescale' ) do
 
 		##
-		# The local address to bind to
-		setting :bind_address, default: '0.0.0.0'
-
-		##
-		# The address of the multicast group to join
-		setting :multicast_address, default: '224.15.7.75'
-
-		##
-		# The TTL of the outgoing messages, i.e., how many hops they will be limited to
-		setting :multicast_ttl, default: 1
+		# The host to bind to
+		setting :host, default: 'localhost'
 
 		##
 		# The port to bind to
@@ -53,22 +45,14 @@ class Observability::Collector::Timescale < Observability::Collector
 	end
 
 
-	### Return an IPAddr that represents the local + multicast addresses to bind to.
-	def self::bind_addr
-		return IPAddr.new( self.bind_address ).hton + IPAddr.new( self.multicast_address ).hton
-	end
-
-
-	### Create a new UDP sender
-	def initialize( * )
+	### Create a new UDP collector
+	def initialize
 		super
 
-		@multicast_address = self.class.multicast_address
-		@port              = self.class.port
-		@socket            = self.create_socket
-		@db                = nil
-		@cursor            = nil
-		@processing        = false
+		@socket     = UDPSocket.new
+		@db         = nil
+		@cursor     = nil
+		@processing = false
 	end
 
 
@@ -76,30 +60,19 @@ class Observability::Collector::Timescale < Observability::Collector
 	public
 	######
 
-	##
-	# The address of the multicast group to send to
-	attr_reader :multicast_address
-
-	##
-	# The port to send on
-	attr_reader :port
-
-	##
-	# The socket to send events over
-	attr_reader :socket
-
-	##
-	# The database handle to use when inserting events
-	attr_reader :db
-
-
 	### Start receiving events.
 	def start
 		self.log.info "Starting up."
 		@db = Sequel.connect( self.class.db )
 		@db.extension( :pg_json )
+		# @cursor = @db[ :events ].prepare( :insert, :insert_new_event,
+		# 	 time: :$time,
+		# 	 type: :$type,
+		# 	 version: :$version,
+		# 	 data: :$data
+		# )
 
-		self.socket.bind( self.class.bind_address, self.class.port )
+		@socket.bind( self.class.host, self.class.port )
 
 		self.start_processing
 	end
@@ -109,7 +82,8 @@ class Observability::Collector::Timescale < Observability::Collector
 	def stop
 		self.stop_processing
 
-		self.db.disconnect
+		@cursor = nil
+		@db.disconnect
 	end
 
 
@@ -133,10 +107,10 @@ class Observability::Collector::Timescale < Observability::Collector
 	### Read the next event from the socket
 	def read_next_event
 		self.log.debug "Reading next event."
-		data = self.socket.recv_nonblock( MAX_EVENT_BYTES, exception: false )
+		data = @socket.recv_nonblock( MAX_EVENT_BYTES, exception: false )
 
 		if data == :wait_readable
-			IO.select( [self.socket], nil, nil, LOOP_TIMER )
+			IO.select( [@socket], nil, nil, LOOP_TIMER )
 			return nil
 		elsif data.empty?
 			return nil
@@ -154,26 +128,12 @@ class Observability::Collector::Timescale < Observability::Collector
 		version = event.delete('@version')
 
 		# @cursor.call( time: time, type: type, version: version, data: event )
-		self.db[ :events ].insert(
+		@db[ :events ].insert(
 			 time: time,
 			 type: type,
 			 version: version,
 			 data: Sequel.pg_json( event )
 		)
-	end
-
-
-	### Create and return a UDPSocket after setting it up for multicast.
-	def create_socket
-		iaddr = self.class.bind_addr
-		socket = UDPSocket.new
-
-		socket.setsockopt( :IPPROTO_IP, :IP_ADD_MEMBERSHIP, iaddr )
-		socket.setsockopt( :IPPROTO_IP, :IP_MULTICAST_TTL, self.class.multicast_ttl )
-		socket.setsockopt( :IPPROTO_IP, :IP_MULTICAST_LOOP, 1 )
-		socket.setsockopt( :SOL_SOCKET, :SO_REUSEPORT, 1 )
-
-		return socket
 	end
 
 end # class Observability::Collector::UDP
