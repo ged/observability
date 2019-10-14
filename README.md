@@ -1,7 +1,10 @@
 # Observability
 
-code
+home
 : https://hg.sr.ht/~ged/Observability
+
+code
+: https://hg.sr.ht/~ged/Observability/browse
 
 github
 : https://github.com/ged/observability
