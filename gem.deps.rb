@@ -9,7 +9,7 @@ gem 'msgpack', '~> 1.3'
 
 group :development do
 	gem 'timecop', '~> 0.9'
-	gem 'rake-deveiate', '~> 0.2'
+	gem 'rake-deveiate', '~> 0.4'
 	gem 'simplecov', '~> 0.7'
 	gem 'rdoc-generator-fivefish', '~> 0.1'
 end
