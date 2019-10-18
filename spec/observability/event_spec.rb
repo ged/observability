@@ -99,7 +99,7 @@ describe Observability::Event do
 
 		sleep 0.25
 
-		expect( event.resolve[:duration] ).to be_within( 0.02 ).of( 0.25 )
+		expect( event.resolve[:duration] ).to be_a( Float ).and( be > 0.25 )
 	end
 
 end
