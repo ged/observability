@@ -7,9 +7,9 @@ sources:
   - hg+https://hg.sr.ht/~ged/Observability
 tasks:
   - setup: |
-      cd hglib
+      cd Observability
       gem install --user-install -Ng
   - test: |
       export PATH=$PATH:$(ruby -r rubygems -e 'puts Gem.user_dir')/bin
-      cd hglib
+      cd Observability
       COVERAGE=1 rspec -cfd
