@@ -19,7 +19,7 @@ Observability is a toolkit for instrumenting code to make it more observable.
 It follows the principle of Observability-Oriented Design as expressed by Charity
 Majors (@mipsytipsy).
 
-Its goals are [stolen from https://charity.wtf/2019/02/05/logs-vs-structured-events/]:
+Its goals are stolen from https://charity.wtf/2019/02/05/logs-vs-structured-events/:
 
 * Emit a rich record from the perspective of a single action as the code is
   executing.
