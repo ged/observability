@@ -45,6 +45,7 @@ module Observability::Instrumentation
 			mod.extend( Loggability )
 			mod.log_to( :observability )
 			mod.instance_variable_set( :@depends_on, Set.new )
+			mod.instance_variable_set( :@requires, Set.new )
 			mod.instance_variable_set( :@installation_callbacks, Set.new )
 			mod.singleton_class.attr_reader( :installation_callbacks )
 		else
@@ -81,8 +82,15 @@ module Observability::Instrumentation
 	### If they are not present when the instrumentation loads, it will be skipped
 	### entirely.
 	def depends_on( *modules )
-		@depends_on.merge( modules.flatten(1) )
+		@depends_on.merge( modules.flatten )
 		return @depends_on
+	end
+
+
+	### Specified +files+ to require if this instrumentation is loaded.
+	def requires( *files )
+		@requires.merge( files.flatten )
+		return @requires
 	end
 
 
@@ -101,6 +109,9 @@ module Observability::Instrumentation
 
 	### Call installation callbacks which meet their prerequistes.
 	def install
+		self.requires.each do |file|
+			require( file )
+		end
 		self.installation_callbacks.each do |callback, dependencies|
 			missing = dependencies.
 				reject {|mod| Observability::Instrumentation.check_for_module(mod) }
@@ -112,6 +123,8 @@ module Observability::Instrumentation
 				self.log.info "Skipping %p: missing %s" % [ callback, missing.join(', ') ]
 			end
 		end
+	rescue LoadError => err
+		raise "%p while loading instrumentation"
 	end
 
 end # module Observability::Instrumentation

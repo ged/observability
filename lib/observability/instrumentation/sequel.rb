@@ -32,6 +32,5 @@ module Observability::Instrumentation::Sequel
 		end
 	end
 
-
 end # module Observability::Instrumentation::Sequel
 
