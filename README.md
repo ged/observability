@@ -35,6 +35,8 @@ Its goals are [stolen from https://charity.wtf/2019/02/05/logs-vs-structured-eve
   system quality, system behavior, outliers, error conditions, etc. You will be
   absolutely amazed how useful it is … and appalled by what you turn up. 🙂
 
+[![builds.sr.ht status](https://builds.sr.ht/~ged/Observability.svg)](https://builds.sr.ht/~ged/Observability?)
+
 
 ## Prerequisites
 
