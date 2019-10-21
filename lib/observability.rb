@@ -18,6 +18,9 @@ module Observability
 	# Version control revision
 	REVISION = %q$Revision$
 
+	# The default port to use for network communications
+	DEFAULT_PORT = 15775
+
 
 	# Loggability -- Create a logger
 	log_as :observability

@@ -36,7 +36,7 @@ class Observability::Collector::RabbitMQ < Observability::Collector
 
 		##
 		# The port to bind to
-		setting :port, default: 15775
+		setting :port, default: Observability::DEFAULT_PORT
 
 		##
 		# The broker_uri to use when connecting to RabbitMQ

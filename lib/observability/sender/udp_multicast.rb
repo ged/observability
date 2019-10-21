@@ -35,7 +35,7 @@ class Observability::Sender::UdpMulticast < Observability::Sender
 
 		##
 		# The port to bind to
-		setting :port, default: 15775
+		setting :port, default: Observability::DEFAULT_PORT
 
 	end
 

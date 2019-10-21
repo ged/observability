@@ -37,7 +37,7 @@ class Observability::Collector::Timescale < Observability::Collector
 
 		##
 		# The port to bind to
-		setting :port, default: 15775
+		setting :port, default: Observability::DEFAULT_PORT
 
 		##
 		# The URL of the timescale DB to store events in
@@ -106,7 +106,6 @@ class Observability::Collector::Timescale < Observability::Collector
 
 	### Read the next event from the socket
 	def read_next_event
-		self.log.debug "Reading next event."
 		data = @socket.recv_nonblock( MAX_EVENT_BYTES, exception: false )
 
 		if data == :wait_readable
@@ -123,6 +122,8 @@ class Observability::Collector::Timescale < Observability::Collector
 
 	### Store the specified +event+.
 	def store_event( event )
+		self.log.debug "Storing event: %p" % [ event ]
+
 		time    = event.delete('@timestamp')
 		type    = event.delete('@type')
 		version = event.delete('@version')

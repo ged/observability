@@ -28,7 +28,7 @@ class Observability::Sender::UDP < Observability::Sender
 
 		##
 		# The port to send events to
-		setting :port, default: 15775
+		setting :port, default: Observability::DEFAULT_PORT
 
 	end
 
