@@ -35,6 +35,26 @@ describe Observability::Event do
 	end
 
 
+	it "can be created with a parent event" do
+		parent_event = described_class.new( 'acme.server.request', score: 100, time: 48 )
+		child_event = described_class.new( 'acme.user.created', parent_event )
+
+		expect( child_event.parent_id ).to eq( parent_event.id )
+	end
+
+
+	it "is created with a unique ID" do
+		event1 = described_class.new( 'acme.server.request' )
+		event2 = described_class.new( 'acme.server.request' )
+
+		expect( event1.id ).to be_a( String )
+		expect( event1.id.length ).to be > 16
+		expect( event2.id ).to be_a( String )
+		expect( event2.id.length ).to be == event1.id.length
+		expect( event2.id ).to_not eq( event1.id )
+	end
+
+
 	it "returns a structured log entry when resolved" do
 		event = described_class.new( 'acme.user.review', score: 100, time: 48 )
 		expect( event.resolve ).to be_a( Hash ).and( include(score: 100, time: 48) )

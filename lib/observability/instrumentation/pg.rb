@@ -39,6 +39,10 @@ module Observability::Instrumentation::PG
 	end
 
 
+	###############
+	module_function
+	###############
+
 	### Observer callback for the *exec methods.
 	def observe_exec( sql, * )
 		nsql = PgQuery.normalize( sql )

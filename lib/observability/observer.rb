@@ -54,7 +54,8 @@ class Observability::Observer
 		type = self.type_from_object( type )
 		fields = self.fields_from_options( options )
 
-		event = Observability::Event.new( type, **fields )
+		parent = @event_stack.value.last
+		event = Observability::Event.new( type, parent, **fields )
 		@event_stack.value.push( event )
 
 		new_context = @context_stack.value.last&.dup || {}

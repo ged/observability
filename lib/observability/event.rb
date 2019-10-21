@@ -3,6 +3,7 @@
 
 require 'time'
 require 'forwardable'
+require 'uuid'
 require 'loggability'
 require 'concurrent'
 
@@ -22,8 +23,23 @@ class Observability::Event
 	log_to :observability
 
 
+	### Return a generator that can return a unique ID string for identifying Events
+	### across application boundaries.
+	def self::id_generator
+		return @id_generator ||= UUID.new
+	end
+
+
+	### Generate a new Event ID.
+	def self::generate_id
+		return self.id_generator.generate
+	end
+
+
 	### Create a new event
-	def initialize( type, **fields )
+	def initialize( type, parent=nil, **fields )
+		@id        = self.class.generate_id
+		@parent_id = parent&.id
 		@type      = type.freeze
 		@timestamp = Time.now
 		@start     = Concurrent.monotonic_time
@@ -34,6 +50,14 @@ class Observability::Event
 	######
 	public
 	######
+
+	##
+	# The ID of the event, used to pass context through application boundaries
+	attr_reader :id
+
+	##
+	# The ID of the containing context event, if there is one
+	attr_reader :parent_id
 
 	##
 	# The type of the event, which should be a string of the form: 'foo.bar.baz'
@@ -71,6 +95,8 @@ class Observability::Event
 		unless @fields.frozen?
 			self.log.debug "Resolving event %#x" % [ self.object_id ]
 			data = self.fields.merge(
+				:@id => self.id,
+				:@parent_id => self.parent_id,
 				:@type => self.type,
 				:@timestamp => self.timestamp,
 				:@version => FORMAT_VERSION

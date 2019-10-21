@@ -6,6 +6,7 @@ gem 'loggability', '~> 0.11'
 gem 'configurability', '~> 3.3'
 gem 'pluggability', '~> 0.6'
 gem 'msgpack', '~> 1.3'
+gem 'uuid', '~> 2.3'
 
 group :development do
 	gem 'timecop', '~> 0.9'
