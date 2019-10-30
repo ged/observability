@@ -54,13 +54,6 @@ You can check out the current development source with Mercurial via its
 [project page][sourcehut]. Or if you prefer Git, via
 [its Github mirror][github].
 
-After checking out the source, run:
-
-    $ rake newb
-
-This task will install any missing dependencies, run the tests/specs,
-and generate the API documentation.
-
 
 ## Author
 
