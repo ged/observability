@@ -96,13 +96,27 @@ module Observability
 	### Make a body for a wrapping method for the method with the given +name+ and
 	### +context+, passing the given +options+.
 	def self::make_wrapped_method( name, context, options, &callback )
-		return Proc.new do |*m_args, **m_options, &block|
-			Loggability[ Observability ].debug "Wrapped method %p: %p" %
-				[ name, context ]
-			Observability.observer.event( context, **options ) do
-				# :TODO: Freeze or dup the arguments to prevent accidental modification?
-				callback.call( *m_args, **m_options, &block ) if callback
-				super( *m_args, **m_options, &block )
+
+		# Supering into arity-zero methods with (empty) *args and **options raises an
+		# ArgumentError for some reason.
+		if context.first.arity.zero?
+			return Proc.new do |*m_args, **m_options, &block|
+				Loggability[ Observability ].debug "Wrapped zero-arity method %p: %p" %
+					[ name, context ]
+				Observability.observer.event( context, **options ) do
+					callback.call( *m_args, **m_options, &block ) if callback
+					super( *m_args, &block )
+				end
+			end
+		else
+			return Proc.new do |*m_args, **m_options, &block|
+				Loggability[ Observability ].debug "Wrapped method %p: %p" %
+					[ name, context ]
+				Observability.observer.event( context, **options ) do
+					# :TODO: Freeze or dup the arguments to prevent accidental modification?
+					callback.call( *m_args, **m_options, &block ) if callback
+					super( *m_args, **m_options, &block )
+				end
 			end
 		end
 	end
