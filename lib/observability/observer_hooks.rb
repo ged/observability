@@ -11,10 +11,13 @@ module Observability::ObserverHooks
 	### context, then yield to the method's block. Finish the event when the yield
 	### returns, handling exceptions that are being raised automatically.
 	def observe( detail, **options, &block )
-		raise LocalJumpError, "no block given" unless block
-
-		marker = Observability.observer.event( [block, detail], **options )
-		Observability.observer.finish_after_block( marker, &block )
+		if block
+			marker = Observability.observer.event( [block, detail], **options )
+			Observability.observer.finish_after_block( marker, &block )
+		else
+			Loggability[ Observability ].warn "No block given for %p -> %p with options: %p" %
+				[ self, detail, options ]
+		end
 	end
 
 
