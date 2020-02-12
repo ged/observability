@@ -34,7 +34,7 @@ describe Observability::Sender::UDP do
 			block.call( *args )
 		end
 		expect( udp_socket ).to receive( :connect ).with( 'localhost', 8787 )
-		expect( udp_socket ).to receive( :sendmsg_nonblock ) do |msg, flags, **opts|
+		expect( udp_socket ).to receive( :sendmsg_nonblock ) do |msg, flags, opts={}|
 			expect( msg ).to match( /\{.*"@type":"acme\.engine\.startup".*\}/ )
 			expect( flags ).to eq( 0 )
 			expect( opts ).to include( exception: false )
@@ -55,7 +55,7 @@ describe Observability::Sender::UDP do
 			block.call( *args )
 		end
 		expect( udp_socket ).to receive( :connect ).with( 'localhost', 8787 )
-		expect( udp_socket ).to receive( :sendmsg_nonblock ) do |msg, flags, **opts|
+		expect( udp_socket ).to receive( :sendmsg_nonblock ) do |msg, flags, opts={}|
 			if !blocked_once
 				blocked_once = true
 				:wait_writable
