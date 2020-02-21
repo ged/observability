@@ -62,7 +62,7 @@ You can check out the current development source with Mercurial via its
 
 ## License
 
-Copyright (c) 2019, Michael Granger
+Copyright (c) 2019-2020, Michael Granger
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without

@@ -2,6 +2,20 @@
 
 ---
 
+## v0.3.0 [2020-02-21] Michael Granger <ged@faeriemud.org>
+
+Improvements:
+
+- Add `requires` to instrumentation, add a PG instrument
+- Add an event ID for cross-application context
+- Update for Ruby 2.7.
+
+Bugfixes:
+
+- Add a provisional fix for observing arity-0 methods
+- Guard against blockless observe calls
+
+
 ## v0.2.0 [2019-10-16] Michael Granger <ged@faeriemud.org>
 
 Improvements:
