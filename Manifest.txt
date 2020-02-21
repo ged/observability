@@ -10,7 +10,9 @@ lib/observability/collector/timescale.rb
 lib/observability/event.rb
 lib/observability/instrumentation.rb
 lib/observability/instrumentation/bunny.rb
+lib/observability/instrumentation/cztop.rb
 lib/observability/instrumentation/grape.rb
+lib/observability/instrumentation/pg.rb
 lib/observability/instrumentation/rack.rb
 lib/observability/instrumentation/sequel.rb
 lib/observability/observer.rb
