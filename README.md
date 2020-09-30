@@ -38,6 +38,12 @@ Its goals are stolen from https://charity.wtf/2019/02/05/logs-vs-structured-even
 [![builds.sr.ht status](https://builds.sr.ht/~ged/Observability.svg)](https://builds.sr.ht/~ged/Observability?)
 
 
+### Resources
+
+* https://charity.wtf/2020/03/03/observability-is-a-many-splendored-thing/
+* https://medium.com/@copyconstruct/monitoring-and-observability-8417d1952e1c
+
+
 ## Prerequisites
 
 * Ruby 2.6
