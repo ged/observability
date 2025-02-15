@@ -21,7 +21,7 @@ describe Observability::Sender do
 	it "is an abstract class" do
 		expect {
 			described_class.new
-		}.to raise_error( NoMethodError, /private method `new'/i )
+		}.to raise_error( NoMethodError, /private method .new./i )
 	end
 
 

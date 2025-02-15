@@ -1,6 +1,7 @@
 /html/
-doc/
 coverage/
 ^ChangeLog$
 \.lock$
 pkg/
+docs/
+
