@@ -1,6 +1,12 @@
 # Release History for observability
 
 ---
+## v0.4.0 [2025-02-14] Michael Granger <ged@faeriemud.org>
+
+Fixes:
+
+- Update for latest configurability, Ruby 3.4 compatibility
+
 
 ## v0.3.0 [2020-02-21] Michael Granger <ged@faeriemud.org>
 
