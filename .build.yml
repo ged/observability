@@ -3,7 +3,7 @@ packages:
   - ruby
   - rubygem-gems
   - rubygem-rake
-  - postgresql12-client
+  - postgresql17-client
 sources:
   - hg+https://hg.sr.ht/~ged/Observability
 tasks:
